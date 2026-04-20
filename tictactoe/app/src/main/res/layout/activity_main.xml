@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/statusText"
+        android:text="Your Turn"
+        android:textSize="24sp"
+        android:layout_marginBottom="20dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@+id/scoreText"
+        android:text="Player: 0  AI: 0"
+        android:textSize="18sp"
+        android:layout_marginBottom="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <View
+        android:id="@+id/fireworksView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"/>
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <GridLayout
+            android:id="@+id/grid"
+            android:rowCount="3"
+            android:columnCount="3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <!-- 9 Buttons -->
+            <Button android:id="@+id/b0" style="@style/btn"/>
+            <Button android:id="@+id/b1" style="@style/btn"/>
+            <Button android:id="@+id/b2" style="@style/btn"/>
+            <Button android:id="@+id/b3" style="@style/btn"/>
+            <Button android:id="@+id/b4" style="@style/btn"/>
+            <Button android:id="@+id/b5" style="@style/btn"/>
+            <Button android:id="@+id/b6" style="@style/btn"/>
+            <Button android:id="@+id/b7" style="@style/btn"/>
+            <Button android:id="@+id/b8" style="@style/btn"/>
+        </GridLayout>
+
+        <View
+            android:id="@+id/winLine"
+            android:background="#FF0000"
+            android:visibility="gone"
+            android:layout_width="0dp"
+            android:layout_height="5dp"/>
+
+
+
+    </FrameLayout>
+<!--    <GridLayout-->
+<!--        android:rowCount="3"-->
+<!--        android:columnCount="3"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content">-->
+
+
+
+<!--    </GridLayout>-->
+
+    <Spinner
+        android:id="@+id/levelSpinner"
+        android:layout_marginTop="20dp"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"/>
+
+    <Button
+        android:id="@+id/restartBtn"
+        android:text="Restart"
+        android:layout_marginTop="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+<!--    <Button-->
+<!--        android:id="@+id/themeBtn"-->
+<!--        android:text="Toggle Dark Mode"-->
+<!--        android:layout_marginTop="10dp"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"/>-->
+
+    <Button
+        android:id="@+id/themeBtn"
+        android:text="Change Theme"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+
+    <Button
+        android:id="@+id/musicBtn"
+        android:text="Music ON/OFF"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+</LinearLayout>
