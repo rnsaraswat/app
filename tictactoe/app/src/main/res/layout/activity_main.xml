@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+<!--    status view-->
     <TextView
         android:id="@+id/statusText"
         android:text="Your Turn"
@@ -13,6 +14,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
+<!--    score view-->
     <TextView
         android:id="@+id/scoreText"
         android:text="Player: 0  AI: 0"
@@ -21,6 +23,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
+<!--    fireworks view-->
     <View
         android:id="@+id/fireworksView"
         android:layout_width="match_parent"
@@ -31,6 +34,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
 
+<!--        3x3=9 button grid-->
         <GridLayout
             android:id="@+id/grid"
             android:rowCount="3"
@@ -50,6 +54,7 @@
             <Button android:id="@+id/b8" style="@style/btn"/>
         </GridLayout>
 
+<!--        winline view-->
         <View
             android:id="@+id/winLine"
             android:background="#FF0000"
@@ -57,25 +62,16 @@
             android:layout_width="0dp"
             android:layout_height="5dp"/>
 
-
-
     </FrameLayout>
-<!--    <GridLayout-->
-<!--        android:rowCount="3"-->
-<!--        android:columnCount="3"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content">-->
 
-
-
-<!--    </GridLayout>-->
-
+<!--    level dropdown-->
     <Spinner
         android:id="@+id/levelSpinner"
         android:layout_marginTop="20dp"
         android:layout_width="200dp"
         android:layout_height="wrap_content"/>
 
+<!--    restart button-->
     <Button
         android:id="@+id/restartBtn"
         android:text="Restart"
@@ -83,20 +79,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
-<!--    <Button-->
-<!--        android:id="@+id/themeBtn"-->
-<!--        android:text="Toggle Dark Mode"-->
-<!--        android:layout_marginTop="10dp"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"/>-->
+<!--    theme dropdown-->
+    <Spinner
+        android:id="@+id/themeSpinner"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"/>
 
-    <Button
-        android:id="@+id/themeBtn"
-        android:text="Change Theme"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
-
-
+<!--    background music button-->
     <Button
         android:id="@+id/musicBtn"
         android:text="Music ON/OFF"

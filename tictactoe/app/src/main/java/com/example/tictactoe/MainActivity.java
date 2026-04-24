@@ -2,6 +2,7 @@ package com.example.tictactoe;
 
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
@@ -11,85 +12,99 @@ import android.media.MediaPlayer;
 
 public class MainActivity extends AppCompatActivity {
 
-
-    //Multiple themes code
-    // 👇 1. Theme class (अगर यहीं बना रहे हो)
-    class Theme {
-        int bgColor;
+    //Multiple themes gradient
+    //Theme class
+    static class Theme {
+        int bgColorStart;
+        int bgColorEnd;
         int btnColor;
         int textColor;
+        boolean isGradient;
 
-        Theme(int bg, int btn, int text) {
-            bgColor = bg;
+        Theme(int bgStart, int bgEnd, int btn, int text, boolean gradient) {
+            bgColorStart = bgStart;
+            bgColorEnd = bgEnd;
             btnColor = btn;
             textColor = text;
+            isGradient = gradient;
         }
     }
 
-    // 👇 2. Themes यहीं define करो
-    Theme lightTheme = new Theme(Color.WHITE, Color.LTGRAY, Color.BLACK);
-    Theme darkTheme = new Theme(Color.BLACK, Color.DKGRAY, Color.WHITE);
-    Theme blueTheme = new Theme(Color.parseColor("#0D47A1"),
+    //define Themes
+    Theme lightTheme = new Theme(Color.WHITE, Color.WHITE, Color.LTGRAY, Color.BLACK, false);
+    Theme darkTheme = new Theme(Color.BLACK, Color.BLACK, Color.DKGRAY, Color.WHITE, false);
+    //Blue Gradient
+    Theme blueTheme = new Theme(
+            Color.parseColor("#0D47A1"),
+            Color.parseColor("#42A5F5"),
             Color.parseColor("#1976D2"),
-            Color.WHITE);
-
-    // 👇 3. Array
-    Theme[] themes = {lightTheme, darkTheme, blueTheme};
-
-    // 👇 4. Current theme index
+            Color.WHITE,
+            true
+    );
+    //Orange Gradient
+    Theme orangeTheme = new Theme(
+            Color.parseColor("#E65100"),
+            Color.parseColor("#FFB74D"),
+            Color.parseColor("#FB8C00"),
+            Color.BLACK,
+            true
+    );
+    // Theme Array
+    Theme[] themes = {lightTheme, darkTheme, blueTheme, orangeTheme};
+    // theme names display in dropdown
+    String[] themeNames = {"Light", "Dark", "Blue", "Orange"};
+    //set Current theme index
     int currentThemeIndex = 0;
 
-    // 👇 बाकी variables
+    //variables
+    //theme local saved variable
     SharedPreferences prefs;
-//    Button[] buttons = new Button[9];
-//    TextView statusText, scoreText;
-
+    //tic tac toe game buttons (3x3=9)
     Button[] buttons = new Button[9];
+    //status text view
     TextView statusText;
+    //level drop down button
     Spinner levelSpinner;
-
+    //board variable Spaces(empty) in initial
     char[] board = {' ',' ',' ',' ',' ',' ',' ',' ',' '};
+    //player / ai variable
     char player = 'X';
     char ai = 'O';
+    //winline variable
     View winLine;
+    //player / ai score variable
     int playerScore = 0;
     int aiScore = 0;
+    //score text view
     TextView scoreText;
-    //old theme variable
-    //boolean isDark = false;
-
+    //sound variables
     MediaPlayer tapSound, winSound, loseSound, drawSound;
     MediaPlayer bgMusic;
     boolean isMusicOn = false;
+    //fireworks variable
     FireworksView fireworks;
-//    SharedPreferences prefs;
-
+    //define winning combination
     int[][] winCombos = {
             {0,1,2},{3,4,5},{6,7,8},
             {0,3,6},{1,4,7},{2,5,8},
             {0,4,8},{2,4,6}
     };
-
+    //random move
     Random rand = new Random();
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        //variable to save local
+        prefs = getSharedPreferences("settings", MODE_PRIVATE);
         //score
         scoreText = findViewById(R.id.scoreText);
-
-        //theme old
-//        findViewById(R.id.themeBtn).setOnClickListener(v -> toggleTheme());
-        prefs = getSharedPreferences("settings", MODE_PRIVATE);
-        currentThemeIndex = prefs.getInt("theme", 0); // load saved
-        applyTheme();
-
+        //winline
         winLine = findViewById(R.id.winLine);
+        //status
         statusText = findViewById(R.id.statusText);
+        //level
         levelSpinner = findViewById(R.id.levelSpinner);
 
         //background music
@@ -97,26 +112,25 @@ public class MainActivity extends AppCompatActivity {
         bgMusic.setLooping(true);
         //back ground music button
         findViewById(R.id.musicBtn).setOnClickListener(v -> toggleMusic());
-
-        //sound
+        //sound variables
         tapSound = MediaPlayer.create(this, R.raw.tap);
         winSound = MediaPlayer.create(this, R.raw.win);
         loseSound = MediaPlayer.create(this, R.raw.lose);
         drawSound = MediaPlayer.create(this, R.raw.draw);
 
-        //fireworks
+        //fireworks display
         fireworks = new FireworksView(this);
         addContentView(fireworks,
                 new FrameLayout.LayoutParams(
                         FrameLayout.LayoutParams.MATCH_PARENT,
                         FrameLayout.LayoutParams.MATCH_PARENT));
 
-        //levels
+        //change & set levels
         String[] levels = {"Easy", "Medium", "Hard"};
         levelSpinner.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item, levels));
 
-        //game buttons
+        //game buttons click
         for (int i = 0; i < 9; i++) {
             int id = getResources().getIdentifier("b" + i, "id", getPackageName());
             buttons[i] = findViewById(id);
@@ -124,61 +138,43 @@ public class MainActivity extends AppCompatActivity {
             int index = i;
             buttons[i].setOnClickListener(v -> playerMove(index));
         }
-        // theme click
-        findViewById(R.id.themeBtn).setOnClickListener(v -> {
-            currentThemeIndex = (currentThemeIndex + 1) % themes.length;
-            applyTheme();
-            saveTheme();
+        // theme button click
+        //Theme load
+        currentThemeIndex = prefs.getInt("theme", 0);
+        //theme apply
+        applyTheme();
+
+        //theme Spinner setup
+        Spinner themeSpinner = findViewById(R.id.themeSpinner);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_dropdown_item,
+                themeNames
+        );
+
+        themeSpinner.setAdapter(adapter);
+        // saved theme select करो
+        themeSpinner.setSelection(currentThemeIndex);
+
+        themeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                currentThemeIndex = position;
+
+                applyTheme();
+                // save theme safe call
+                if (prefs != null) {
+                    saveTheme();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
 
         //restart button
         findViewById(R.id.restartBtn).setOnClickListener(v -> resetGame());
     }
-
-    //theme Change old theme
-//    void toggleTheme() {
-//////        if (isDark) {
-//////            getWindow().getDecorView().setBackgroundColor(Color.WHITE);
-//////        } else {
-//////            getWindow().getDecorView().setBackgroundColor(Color.BLACK);
-//////        }
-//////        isDark = !isDark;
-//
-////        View root = getWindow().getDecorView();
-////
-////        root.animate()
-////                .alpha(0f)
-////                .setDuration(150)
-////                .withEndAction(() -> {
-////                    root.setBackgroundColor(isDark ? Color.WHITE : Color.BLACK);
-////                    root.animate().alpha(1f).setDuration(150).start();
-////                });
-////
-////        isDark = !isDark;
-////    }
-//
-//    //Multiple themes code
-//    class Theme {
-//        int bgColor;
-//        int btnColor;
-//        int textColor;
-//
-//        Theme(int bg, int btn, int text) {
-//            bgColor = bg;
-//            btnColor = btn;
-//            textColor = text;
-//        }
-//    }
-//
-//    Theme lightTheme = new Theme(Color.WHITE, Color.LTGRAY, Color.BLACK);
-//    Theme darkTheme = new Theme(Color.BLACK, Color.DKGRAY, Color.WHITE);
-//    Theme blueTheme = new Theme(Color.parseColor("#0D47A1"),
-//            Color.parseColor("#1976D2"),
-//            Color.WHITE);
-//
-//    Theme[] themes = {lightTheme, darkTheme, blueTheme};
-//    int currentThemeIndex = 0;
-
 
     //save theme local Multiple
     void saveTheme() {
@@ -187,31 +183,39 @@ public class MainActivity extends AppCompatActivity {
 
     //applyTheme method Multiple
     void applyTheme() {
-
         Theme t = themes[currentThemeIndex];
+        View root = getWindow().getDecorView();
 
-        // Background
-        getWindow().getDecorView().setBackgroundColor(t.bgColor);
+        // change Background color
+        if (t.isGradient) {
+            GradientDrawable gradient = new GradientDrawable(
+                    GradientDrawable.Orientation.TOP_BOTTOM,
+                    new int[]{t.bgColorStart, t.bgColorEnd}
+            );
+            root.setBackground(gradient);
+        } else {
+            root.setBackgroundColor(t.bgColorStart);
+        }
 
-        // Buttons
+        // change Buttons colors
         for (Button b : buttons) {
             b.setBackgroundColor(t.btnColor);
             b.setTextColor(t.textColor);
         }
 
-        // Text
+        // change Text colors
         statusText.setTextColor(t.textColor);
         scoreText.setTextColor(t.textColor);
     }
 
-    //play sound
+    //play sound method
     void playSound(MediaPlayer mp) {
         if (mp != null) {
             mp.start();
         }
     }
 
-    //background music
+    //background music on/off
     void toggleMusic() {
         if (isMusicOn) {
             bgMusic.pause();
@@ -221,17 +225,8 @@ public class MainActivity extends AppCompatActivity {
         isMusicOn = !isMusicOn;
     }
 
+    //draw win line
     void drawWinLine(int[] combo) {
-
-//        winLine.setVisibility(View.VISIBLE);
-//
-//        winLine.setScaleX(0f);
-//
-//        winLine.animate()
-//                .scaleX(1f)
-//                .setDuration(500)
-//                .start();
-
         winLine.setVisibility(View.VISIBLE);
         winLine.setScaleX(0f);
 
@@ -242,6 +237,7 @@ public class MainActivity extends AppCompatActivity {
                 .start();
     }
 
+    //player move
     void playerMove(int i) {
         if (board[i] != ' ') return;
 
@@ -259,6 +255,7 @@ public class MainActivity extends AppCompatActivity {
                     buttons[i].setScaleY(1f);
                 });
 
+        //check win
         if (checkWin(player)) {
             statusText.setText("You Win!");
             playerScore++;
@@ -271,13 +268,14 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        //check for draw
         if (isDraw()) {
             statusText.setText("Draw!");
             playSound(drawSound);
             return;
         }
 
-//        aiMove();
+        //disable all button during before computer move & enable after
         new android.os.Handler().postDelayed(() -> {
             disableAll();
             aiMove();
@@ -285,6 +283,7 @@ public class MainActivity extends AppCompatActivity {
         }, 400);
     }
 
+    //computer turn
     void aiMove() {
         int move = getBestMove();
         board[move] = ai;
@@ -305,12 +304,13 @@ public class MainActivity extends AppCompatActivity {
             playSound(drawSound);
         }
     }
+
     //update score
     void updateScore() {
         scoreText.setText("Player: " + playerScore + "  AI: " + aiScore);
     }
 
-    // 🎮 LEVEL LOGIC
+    //LEVEL LOGIC
     int getBestMove() {
         String level = levelSpinner.getSelectedItem().toString();
 
@@ -331,7 +331,7 @@ public class MainActivity extends AppCompatActivity {
         return empty.get(rand.nextInt(empty.size()));
     }
 
-    // 🧠 MINIMAX
+    //MINIMAX
     int minimaxMove() {
         int bestScore = Integer.MIN_VALUE;
         int move = 0;
@@ -401,21 +401,6 @@ public class MainActivity extends AppCompatActivity {
         for (char c : board) if (c == ' ') return false;
         return true;
     }
-
-    // ✨ Highlight Winning Line
-//    void highlightWin(char p) {
-//        for (int[] combo : winCombos) {
-//            if (board[combo[0]] == p &&
-//                    board[combo[1]] == p &&
-//                    board[combo[2]] == p) {
-//
-//                buttons[combo[0]].setBackgroundColor(Color.GREEN);
-//                buttons[combo[1]].setBackgroundColor(Color.GREEN);
-//                buttons[combo[2]].setBackgroundColor(Color.GREEN);
-//                drawWinLine(combo);
-//            }
-//        }
-//    }
 
     void highlightWin(char p) {
         for (int[] combo : winCombos) {
