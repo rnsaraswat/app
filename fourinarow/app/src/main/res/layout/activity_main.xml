@@ -1,49 +1,87 @@
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="top|center_horizontal"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="50dp"
+    android:gravity="center"
     android:orientation="vertical">
+
+    <!--        status view-->
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:text="Your Turn"
+        android:textSize="24sp" />
+
+    <!-- Score -->
+    <TextView
+        android:id="@+id/scoreText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:text="Player: 0  AI: 0"
+        android:textSize="18sp" />
+
+    <!-- Board Container -->
+    <FrameLayout
+        android:id="@+id/boardContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center">
+
+        <!-- Game Board -->
+        <GridLayout
+            android:id="@+id/grid"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:columnCount="7"
+            android:rowCount="6" />
+
+        <!--         win Line View -->
+        <com.example.fourinarow.WinLineView
+            android:id="@+id/winLine"
+            android:layout_width="wrap_content"
+            android:layout_height="373dp" />
+
+    </FrameLayout>
 
     <!-- Difficulty Dropdown -->
     <Spinner
         android:id="@+id/difficultySpinner"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"/>
-
-    <!-- Score -->
-    <TextView
-        android:id="@+id/scoreText"
-        android:text="Player: 0  AI: 0"
-        android:textSize="18sp"
-        android:padding="10dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
-
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:gravity="center">
-
-    <!-- Game Board -->
-    <GridLayout
-        android:id="@+id/grid"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:columnCount="7"
-        android:rowCount="6" />
-
-    </FrameLayout>
+        android:layout_marginTop="10dp" />
 
     <!-- Restart Button -->
     <Button
         android:id="@+id/restartBtn"
-        android:text="Restart"
-        android:layout_marginTop="10dp"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="52dp"
+        android:layout_marginTop="10dp"
+        android:text="Restart" />
+
+    <!--    theme dropdown-->
+    <Spinner
+        android:id="@+id/themeSpinner"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp" />
+
+    <!--    background music button-->
+    <Button
+        android:id="@+id/musicBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Music ON/OFF" />
+
+    <!-- leaderboard button-->
+    <Button
+        android:id="@+id/leaderboardBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🏆 Leaderboard" />
 
 </LinearLayout>
