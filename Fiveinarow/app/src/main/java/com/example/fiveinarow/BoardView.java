@@ -13,23 +13,15 @@ import java.util.List;
 
 public class BoardView extends View {
 
+
+    //variables
     int size = 15;
     int[][] board = new int[size][size];
-
-//    private OnCellTouchListener listener;
-
-//    int boardSize = Math.min(getWidth(), getHeight());
-//    int offsetX = (getWidth() - boardSize) / 2;
-//    int offsetY = (getHeight() - boardSize) / 2;
-
     int lastRow = -1, lastCol = -1;
-
     Paint gridPaint = new Paint();
     Paint glowPaint = new Paint();
     Paint winPaint = new Paint();
-
     List<int[]> winningCells = new ArrayList<>();
-
     Paint paint = new Paint();
 
     @Override
@@ -38,48 +30,8 @@ public class BoardView extends View {
                 MeasureSpec.getSize(heightMeasureSpec));
         setMeasuredDimension(size, size);
     }
-//    @Override
-//    protected void onDraw(Canvas canvas) {
-//        super.onDraw(canvas);
-//
-////        int cell = getWidth() / size;
-////
-////
-////        // Draw grid
-////        for (int i = 0; i < size; i++) {
-////            canvas.drawLine(i * cell, 0, i * cell, getHeight(), paint);
-////            canvas.drawLine(0, i * cell, getWidth(), i * cell, paint);
-////        }
-//
-//        Paint gridPaint = new Paint();
-//        gridPaint.setColor(Color.BLACK);
-//        gridPaint.setStrokeWidth(3);
-//        gridPaint.setAntiAlias(true);
-//
-//        int cell = boardSize / size;
-//
-//        for (int i = 0; i < size; i++) {
-//            canvas.drawLine(offsetX + i * cell, offsetY,
-//                    offsetX + i * cell, offsetY + boardSize, gridPaint);
-//
-//            canvas.drawLine(offsetX, offsetY + i * cell,
-//                    offsetX + boardSize, offsetY + i * cell, gridPaint);
-//        }
-//
-//        // Draw pieces
-//        for (int r = 0; r < size; r++) {
-//            for (int c = 0; c < size; c++) {
-//                if (board[r][c] == 1) {
-//                    paint.setColor(Color.BLACK);
-//                    canvas.drawCircle(c * cell + cell/2, r * cell + cell/2, cell/3, paint);
-//                } else if (board[r][c] == 2) {
-//                    paint.setColor(Color.RED);
-//                    canvas.drawCircle(c * cell + cell/2, r * cell + cell/2, cell/3, paint);
-//                }
-//            }
-//        }
-//    }
 
+    //draw method
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -90,7 +42,7 @@ public class BoardView extends View {
 
         int cell = boardSize / size;
 
-        // 🔲 Grid draw
+        //draw Grid
         for (int i = 0; i < size; i++) {
             canvas.drawLine(offsetX + i * cell, offsetY,
                     offsetX + i * cell, offsetY + boardSize, gridPaint);
@@ -99,7 +51,7 @@ public class BoardView extends View {
                     offsetX + boardSize, offsetY + i * cell, gridPaint);
         }
 
-        // 🟢 Winning highlight
+        //draw Winning highlight
         for (int[] pos : winningCells) {
             int r = pos[0];
             int c = pos[1];
@@ -113,7 +65,7 @@ public class BoardView extends View {
             );
         }
 
-        // ⚫ Pieces + glow
+        //Pieces + glow
         Paint piecePaint = new Paint();
         piecePaint.setAntiAlias(true);
 
@@ -133,7 +85,7 @@ public class BoardView extends View {
 
                     canvas.drawCircle(cx, cy, cell / 3f, piecePaint);
 
-                    // ✨ Glow for last move
+                    //Glow for last move
                     if (r == lastRow && c == lastCol) {
                         canvas.drawCircle(cx, cy, cell / 2f, glowPaint);
                     }
@@ -142,6 +94,7 @@ public class BoardView extends View {
         }
     }
 
+    //place move
     public boolean placeMove(int r, int c, int player) {
         if (board[r][c] == 0) {
             board[r][c] = player;
@@ -159,6 +112,7 @@ public class BoardView extends View {
         return board;
     }
 
+    //check win method
     public boolean checkWin(int r, int c) {
 
         int player = board[r][c];
@@ -171,15 +125,9 @@ public class BoardView extends View {
         if (checkDirection(r, c, 1, -1, player)) return true;
 
         return false;
-
-//        int player = board[r][c];
-//
-//        return count(r,c,1,0,player)+count(r,c,-1,0,player) >= 4 ||
-//                count(r,c,0,1,player)+count(r,c,0,-1,player) >= 4 ||
-//                count(r,c,1,1,player)+count(r,c,-1,-1,player) >= 4 ||
-//                count(r,c,1,-1,player)+count(r,c,-1,1,player) >= 4;
     }
 
+    //
     private boolean checkDirection(int r, int c, int dr, int dc, int player) {
 
         List<int[]> temp = new ArrayList<>();
@@ -262,25 +210,7 @@ public class BoardView extends View {
         this.listener = listener;
     }
 
-//    if (listener != null) {
-//        listener.onCellTouched(row, col);   // ✅ यही call करो
-//    }
-
-    // जब touch हो तब call करो
-//    @Override
-//    public boolean onTouchEvent(MotionEvent event) {
-//        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-//
-//            int row = (int)(event.getY() / (getHeight() / 6));
-//            int col = (int)(event.getX() / (getWidth() / 7));
-//
-//            if (listener != null) {
-//                listener.onCellTouch(row, col);
-//            }
-//        }
-//        return true;
-//    }
-
+    //on touch method
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
@@ -299,24 +229,22 @@ public class BoardView extends View {
                 return true;
             }
 
-            // 👉 offset subtract करो
+            //offset subtract करो
             int col = (int)((x - offsetX) / cell);
             int row = (int)((y - offsetY) / cell);
 
-
-
-            // 👉 safe check
+            //safe check
             if (row >= 0 && row < size && col >= 0 && col < size) {
                 if (listener != null) {
                     listener.onCellTouched(row, col);
                 }
             }
-
             return true;
         }
         return super.onTouchEvent(event);
     }
 
+    //reset board method (used during restart)
     public void resetBoard() {
         for (int r = 0; r < size; r++) {
             for (int c = 0; c < size; c++) {
@@ -331,7 +259,7 @@ public class BoardView extends View {
         invalidate();
     }
 
-    //draw check full board
+    //draw method (check full board)
     public boolean isBoardFull() {
         for (int r = 0; r < size; r++) {
             for (int c = 0; c < size; c++) {
@@ -341,7 +269,7 @@ public class BoardView extends View {
         return true;
     }
 
-    //undo remove
+    //undo method (remove cell mark on undo)
     public void removeMove(int r, int c) {
         board[r][c] = 0;
 

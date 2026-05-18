@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_neon"
+    android:gravity="center"
+    android:orientation="vertical">
+
+<!--    <LinearLayout-->
+<!--        android:layout_width="411dp"-->
+<!--        android:layout_height="731dp"-->
+<!--        android:gravity="center"-->
+<!--        android:orientation="vertical"-->
+<!--        android:padding="30dp"-->
+<!--        android:background="@drawable/bg_neon">-->
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:text="GAME PAUSED"
+        android:textColor="#03A9F4"
+        android:textSize="32sp"
+        android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnResume"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="RESUME"
+            android:textColor="#FFFFFF" />
+<!--    </LinearLayout>-->
+</LinearLayout>

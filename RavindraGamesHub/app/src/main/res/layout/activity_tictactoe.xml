@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:clickable="false"
+    android:focusable="false">
+
+    <!-- 🔥 COMMON HEADER -->
+    <include layout="@layout/common_header" />
+
+    <!-- GAME AREA -->
+    <LinearLayout
+        android:id="@+id/gameContainer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!--    status view-->
+        <TextView
+            android:id="@+id/txtTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:text="TIC TAC TOE"
+            android:textAlignment="center"
+            android:textSize="24sp" />
+
+        <!--  Home Button -->
+        <Button
+            android:id="@+id/btnHome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🏠 Home" />
+
+        <!--    status view-->
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:text="Your Turn"
+            android:textSize="24sp" />
+
+        <!--    score view-->
+        <TextView
+            android:id="@+id/scoreText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="Player: 0  AI: 0"
+            android:textAlignment="center"
+            android:textSize="18sp" />
+
+        <!--    fireworks view-->
+<!--        <View-->
+<!--            android:id="@+id/fireworksView"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:visibility="gone" />-->
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAlignment="center">
+
+            <!--        3x3=9 button grid-->
+            <GridLayout
+                android:id="@+id/grid"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:columnCount="3"
+                android:rowCount="3">
+
+                <!-- 9 Buttons -->
+                <Button
+                    android:id="@+id/b0"
+                    style="@style/btn" />
+
+                <Button
+                    android:id="@+id/b1"
+                    style="@style/btn" />
+
+                <Button
+                    android:id="@+id/b2"
+                    style="@style/btn" />
+
+                <Button
+                    android:id="@+id/b3"
+                    style="@style/btn" />
+
+                <Button
+                    android:id="@+id/b4"
+                    style="@style/btn" />
+
+                <Button
+                    android:id="@+id/b5"
+                    style="@style/btn" />
+
+                <Button
+                    android:id="@+id/b6"
+                    style="@style/btn" />
+
+                <Button
+                    android:id="@+id/b7"
+                    style="@style/btn" />
+
+                <Button
+                    android:id="@+id/b8"
+                    style="@style/btn" />
+            </GridLayout>
+
+            <!--        winline view-->
+            <View
+                android:id="@+id/winLine"
+                android:layout_width="0dp"
+                android:layout_height="5dp"
+                android:background="#FF0000"
+                android:visibility="gone" />
+
+        </FrameLayout>
+
+        <!--    level dropdown-->
+        <Spinner
+            android:id="@+id/levelSpinner"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp" />
+
+        <!--    restart button-->
+        <Button
+            android:id="@+id/restartBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Restart" />
+
+        <!--    theme dropdown-->
+        <Spinner
+            android:id="@+id/themeSpinner"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp" />
+
+        <!--    background music button-->
+        <Button
+            android:id="@+id/musicBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Music ON/OFF" />
+    </LinearLayout>
+</LinearLayout>

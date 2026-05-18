@@ -1,99 +1,16 @@
 package com.example.fiveinarow;
 
 import java.util.*;
-//import java.util.Random;
-//
-//public class AIPlayer {
-//        int difficulty;
-//        Random rand = new Random();
-//
-//        public AIPlayer(int difficulty) {
-//            this.difficulty = difficulty;
-//        }
-//
-//        public int[] getMove(int[][] board) {
-//
-//            if (difficulty == 0) return randomMove(board);      // Easy
-//            if (difficulty == 1) return mediumMove(board);      // Medium
-//            return hardMove(board);                             // Hard
-//        }
-//
-//        // EASY → Random move
-//        private int[] randomMove(int[][] board) {
-//            int r, c;
-//            do {
-//                r = rand.nextInt(15);
-//                c = rand.nextInt(15);
-//            } while (board[r][c] != 0);
-//            return new int[]{r,c};
-//        }
-//
-//        // MEDIUM → block opponent
-//        private int[] mediumMove(int[][] board) {
-//            // Try to block player
-//            for(int r=0;r<15;r++){
-//                for(int c=0;c<15;c++){
-//                    if(board[r][c]==0){
-//                        board[r][c]=1;
-//                        if(checkWin(board,r,c)){
-//                            board[r][c]=0;
-//                            return new int[]{r,c};
-//                        }
-//                        board[r][c]=0;
-//                    }
-//                }
-//            }
-//            return randomMove(board);
-//        }
-//
-//        // HARD → win + block
-//        private int[] hardMove(int[][] board) {
-//
-//            // Try win
-//            for(int r=0;r<15;r++){
-//                for(int c=0;c<15;c++){
-//                    if(board[r][c]==0){
-//                        board[r][c]=2;
-//                        if(checkWin(board,r,c)){
-//                            board[r][c]=0;
-//                            return new int[]{r,c};
-//                        }
-//                        board[r][c]=0;
-//                    }
-//                }
-//            }
-//
-//            // Block
-//            return mediumMove(board);
-//        }
-//
-//        private boolean checkWin(int[][] b, int r, int c){
-//            int p = b[r][c];
-//
-//            return count(b,r,c,1,0,p)+count(b,r,c,-1,0,p)>=4 ||
-//                    count(b,r,c,0,1,p)+count(b,r,c,0,-1,p)>=4 ||
-//                    count(b,r,c,1,1,p)+count(b,r,c,-1,-1,p)>=4 ||
-//                    count(b,r,c,1,-1,p)+count(b,r,c,-1,1,p)>=4;
-//        }
-//
-//        private int count(int[][] b,int r,int c,int dr,int dc,int p){
-//            int cnt=0;
-//            for(int i=1;i<5;i++){
-//                int nr=r+dr*i,nc=c+dc*i;
-//                if(nr<0||nc<0||nr>=15||nc>=15||b[nr][nc]!=p) break;
-//                cnt++;
-//            }
-//            return cnt;
-//        }
-//}
 
-
-
+//class AI Player
 public class AIPlayer {
+    //variables
     int difficulty;
     int size = 15;
+    //random number variable
     Random rand = new Random();
 
+    //set difficulty
     public AIPlayer(int difficulty) {
         this.difficulty = difficulty;
     }
@@ -101,66 +18,81 @@ public class AIPlayer {
     // 🎯 MAIN METHOD
     public int[] getMove(int[][] board) {
 
+        //easy
         if (difficulty == 0) return randomMove(board);
+        //medium
         if (difficulty == 1) return mixedMove(board);
-
+        //hard
         return smartMove(board);
     }
 
-    // 🔹 Easy
+    //Easy (choose random number)
     private int[] randomMove(int[][] board) {
         int r, c;
+        //loop to choose random row / col until empty cell
         do {
+            //choose random row / col
             r = rand.nextInt(size);
             c = rand.nextInt(size);
         } while (board[r][c] != 0);
         return new int[]{r, c};
     }
 
-    // 🔹 Medium
+    //Medium (choose random or samart move)
     private int[] mixedMove(int[][] board) {
+        //choose random move
         if (rand.nextBoolean()) return randomMove(board);
+        //choose smart move
         return smartMove(board);
     }
 
-    // 🔹 Hard
+    //Hard (Choose smart move)
     private int[] smartMove(int[][] board) {
 
         int bestScore = Integer.MIN_VALUE;
         int[] bestMove = null;
 
+        //loop to playe for each cell of board
         for (int r = 0; r < size; r++) {
             for (int c = 0; c < size; c++) {
 
+                //if cell is empty
                 if (board[r][c] == 0) {
 
+                    //evaluate score for current cell move
                     int score = evaluatePosition(board, r, c);
 
+                    //if score > baset score store it in best move
                     if (score > bestScore) {
+                        //store score to best score and best move
                         bestScore = score;
                         bestMove = new int[]{r, c};
                     }
                 }
             }
         }
-
+        //return best move for ai
         return bestMove;
     }
 
-    // 🔴 IMPORTANT: ये class के अंदर होना चाहिए
+    //evaluation method for AI
     private int evaluatePosition(int[][] board, int r, int c) {
 
         int score = 0;
 
-        score += evaluateDirection(board, r, c, 2) * 2; // attack
-        score += evaluateDirection(board, r, c, 1);     // defense
+        //evaluate for direction for attack
+        score += evaluateDirection(board, r, c, 2) * 2;
+        //evaluate for direction for defence
+        score += evaluateDirection(board, r, c, 1);
 
+        //play mostely in center
         int center = size / 2;
         score += (size - (Math.abs(r - center) + Math.abs(c - center)));
 
         return score;
     }
 
+    // evaluation (direction) method
     private int evaluateDirection(int[][] board, int r, int c, int player) {
 
         int total = 0;
@@ -198,6 +130,7 @@ public class AIPlayer {
         return count;
     }
 
+    //get score
     private int getScore(int count) {
 
         switch (count) {

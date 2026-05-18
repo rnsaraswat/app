@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Ravindra Games Hub</string>
+    <string-array name="themes">
+        <item>🎨 Light Theme</item>
+        <item>🌙 Dark Theme</item>
+        <item>🔵 Blue Gradient</item>
+        <item>🟠 Orange Gradient</item>
+    </string-array>
+</resources>
