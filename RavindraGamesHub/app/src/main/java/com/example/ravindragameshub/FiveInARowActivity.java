@@ -1,4 +1,6 @@
 package com.example.ravindragameshub;
 
-public class FiveInARowActivity {
+import androidx.appcompat.app.AppCompatActivity;
+
+public class FiveInARowActivity extends AppCompatActivity {
 }

@@ -1,132 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="12dp">
+    android:layout_height="70dp"
+    android:padding="10dp">
 
-    <!-- ========================= -->
-    <!-- TOP HEADER -->
-    <!-- ========================= -->
+    <!-- Logo -->
+    <ImageView
+        android:id="@+id/headerLogo"
+        android:layout_width="70dp"
+        android:layout_height="50dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/rgh_logo"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <!-- Main Heading -->
+    <TextView
+        android:id="@+id/headerTitle"
+        android:tag="header"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:layout_marginStart="12dp"
+        android:letterSpacing="0.03"
+        android:shadowColor="#00FFFF"
+        android:shadowDx="0"
+        android:shadowDy="0"
+        android:shadowRadius="12"
+        android:text="Ravindra Games Hub"
+        android:textAlignment="center"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/headerLogo"
+        app:layout_constraintTop_toTopOf="@id/headerLogo" />
 
-        <!-- LOGO -->
+    <!-- Subtitle -->
+    <TextView
+        android:id="@+id/headerSubtitle"
+        android:tag="subheader"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Enhance your brain with fun app games"
+        android:textAlignment="center"
+        android:textColor="#B0BEC5"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/headerTitle"
+        app:layout_constraintTop_toBottomOf="@id/headerTitle" />
 
-        <ImageView
-            android:id="@+id/logo"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
-            android:src="@drawable/rgh_logo"
-            android:scaleType="fitCenter" />
-
-        <!-- TITLE SECTION -->
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginStart="12dp">
-
-            <!-- MAIN TITLE -->
-
-            <TextView
-                android:id="@+id/headerTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Ravindra Games Hub"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:textColor="#ffffff"
-                android:shadowColor="#00ffff"
-                android:shadowDx="2"
-                android:shadowDy="2"
-                android:shadowRadius="10" />
-
-            <!-- SUBTITLE -->
-
-            <TextView
-                android:id="@+id/headerSubtitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Enhance your brain with fun app games"
-                android:textSize="12sp"
-                android:textColor="#d1d5db"
-                android:layout_marginTop="2dp" />
-
-        </LinearLayout>
-
-    </LinearLayout>
-    <!-- ========================= -->
-    <!-- BUTTONS -->
-    <!-- ========================= -->
-
-<LinearLayout
-android:layout_width="match_parent"
-android:layout_height="wrap_content"
-android:orientation="horizontal"
-android:gravity="center_vertical"
-android:layout_marginTop="12dp">
-
-<!-- SIGN IN -->
-
-<Button
-    android:id="@+id/btnSignIn"
-    android:layout_width="0dp"
-    android:layout_height="wrap_content"
-    android:layout_weight="1"
-    android:text="👤 Sign In"
-    android:textAllCaps="false"
-    android:layout_marginEnd="4dp" />
-
-<!-- SHARE -->
-
-<Button
-    android:id="@+id/btnShare"
-    android:layout_width="0dp"
-    android:layout_height="wrap_content"
-    android:layout_weight="1"
-    android:text="📤 Share"
-    android:textAllCaps="false"
-    android:layout_marginEnd="4dp" />
-
-<!-- HOME -->
-
-<Button
-    android:id="@+id/btnHome"
-    android:layout_width="0dp"
-    android:layout_height="wrap_content"
-    android:layout_weight="1"
-    android:text="🏠 Home"
-    android:textAllCaps="false"
-    android:layout_marginEnd="4dp" />
-
-<!-- THEME -->
-
-<Spinner
-    android:id="@+id/spinnerTheme"
-    android:layout_width="0dp"
-    android:layout_height="wrap_content"
-    android:layout_weight="1" />
-
-</LinearLayout>
-
-    <!-- ========================= -->
-    <!-- WELCOME -->
-    <!-- ========================= -->
-
-<TextView
-android:id="@+id/txtWelcome"
-android:layout_width="wrap_content"
-android:layout_height="wrap_content"
-android:text="Welcome Guest"
-android:textSize="18sp"
-android:textStyle="bold"
-android:textColor="#ffffff"
-android:layout_marginTop="12dp" />
-
-    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

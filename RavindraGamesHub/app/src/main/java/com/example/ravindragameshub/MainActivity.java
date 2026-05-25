@@ -29,6 +29,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.ravindragameshub.common.SoundManager;
+import com.example.ravindragameshub.common.ThemeManager;
 import com.example.ravindragameshub.reversi.ReversiActivity;
 import com.google.android.material.card.MaterialCardView;
 
@@ -37,45 +38,96 @@ public class MainActivity extends AppCompatActivity {
     //variables
     //local saved variable
     SharedPreferences prefs;
-    LinearLayout cardTicTacToe, cardMemory, cardFiveInARow, cardReversi;
-//    MaterialCardView cardReversi;
     Button btnShare, btnSignIn;
     TextView txtWelcome;
 
     //theme variables
-    Spinner spinnerTheme;
-    LinearLayout mainLayout;
+    Spinner themeSpinner;
+    LinearLayout rootLayout;
+    String[] themes = {
+            "Light",
+            "Dark",
+            "Blue",
+            "Orange"
+    };
+//    String[] themes = {"🎨 Light","🌙 Dark","🔵 Blue","🟠 Orange"};
     LinearLayout headerLayout;
     private boolean isSpinnerInitialized = false;
-    TextView title;
+    TextView headerTitle;
+    boolean isFirstTime = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        ThemeManager.getTheme(this);
+
         setContentView(R.layout.activity_main);
+
+        View root = findViewById(android.R.id.content);
+
+        ThemeManager.applyTheme(this, root);
 
         SoundManager.init(this);
         //variable to save local device
         prefs = getSharedPreferences("theme_data", MODE_PRIVATE);
 
-        cardTicTacToe = findViewById(R.id.cardTicTacToe);
-        cardMemory = findViewById(R.id.cardMemory);
-        cardFiveInARow = findViewById(R.id.cardFiveInARow);
-        cardReversi = findViewById(R.id.cardReversi);
+        setupGameCard(
+                R.id.cardTicTacToe,
+                "Tic Tac Toe",
+                "Classic X vs O Game",
+                R.drawable.ic_tictactoe,
+                TicTacToeActivity.class
+        );
+
+        setupGameCard(
+                R.id.cardReversi,
+                "Reversi",
+                "Flip The Discs",
+                R.drawable.ic_tictactoe,
+                ReversiActivity.class
+        );
+
+        setupGameCard(
+                R.id.cardMemory,
+                "Connect 4",
+                "Endless ways to connect 4",
+                R.drawable.ic_tictactoe,
+                Connect4Activity.class
+        );
+
+        setupGameCard(
+                R.id.cardFiveInARow,
+                "Five In A Row",
+                "It's not just luck, its strategy",
+                R.drawable.ic_tictactoe,
+                FiveInARowActivity.class
+        );
+
         btnShare = findViewById(R.id.btnShare);
         btnSignIn = findViewById(R.id.btnSignIn);
         txtWelcome = findViewById(R.id.txtWelcome);
+        ThemeManager.applyButtonTheme(btnShare, this);
+        ThemeManager.applyButtonTheme(btnSignIn, this);
 
         //theme
-        spinnerTheme = findViewById(R.id.spinnerTheme);
-        mainLayout = findViewById(R.id.mainLayout);
+        themeSpinner = findViewById(R.id.themeSpinner);
+        rootLayout = findViewById(R.id.rootLayout);
         headerLayout = findViewById(R.id.headerLayout);
-        title = findViewById(R.id.title);
+        headerTitle = findViewById(R.id.headerTitle);
 
+        themeSpinner.setSelection(
+                ThemeManager.currentTheme
+        );
+
+        ThemeManager.applySpinnerTheme(
+                themeSpinner,
+                this,
+                themes);
 
         //Logo Animation
-        ImageView logo = findViewById(R.id.logo);
-        logo.animate()
+        ImageView headerLogo = findViewById(R.id.headerLogo);
+        headerLogo.animate()
                 .rotation(360)
                 .setDuration(1200);
 
@@ -84,13 +136,8 @@ public class MainActivity extends AppCompatActivity {
 
 //        prefs = getSharedPreferences("user_data", MODE_PRIVATE);
 
-        cardTicTacToe.startAnimation(fadeScale);
-        cardMemory.startAnimation(fadeScale);
-        cardReversi.startAnimation(fadeScale);
-        cardFiveInARow.startAnimation(fadeScale);
-
-        TextView title = findViewById(R.id.title);
-        title.animate().translationY(0).alpha(1).setDuration(800);
+        TextView headerTitle = findViewById(R.id.headerTitle);
+        headerTitle.animate().translationY(0).alpha(1).setDuration(800);
         // Load saved name
         String savedName = prefs.getString("player_name", "Guest");
         txtWelcome.setText("Welcome " + savedName);
@@ -105,138 +152,86 @@ public class MainActivity extends AppCompatActivity {
             txtWelcome.setText("Welcome " + name);
         }
 
-        cardTicTacToe.setOnClickListener(v -> {
-            startActivity(new Intent(this, TicTacToeActivity.class));
-        });
-        cardReversi.setOnClickListener(v -> {
-
-
-            Toast.makeText(this,
-                    "Reversi Clicked",
-                    Toast.LENGTH_SHORT).show();
-            Intent intent =
-                    new Intent(
-                            MainActivity.this,
-                            ReversiActivity.class
-                    );
-
-            startActivity(intent);
-        });
-        cardTicTacToe.setOnClickListener(v -> {
-            startActivity(new Intent(this, Connect4Activity.class));
-        });
-
-        cardFiveInARow.setOnClickListener(v -> {
-            startActivity(new Intent(this, FiveInARowActivity.class));
-        });
-
-
-//        cardMemory.setOnClickListener(v -> {
-//            startActivity(new Intent(this, MemoryGameActivity.class));
-//        });
-//
-//        cardGomoku.setOnClickListener(v -> {
-//            startActivity(new Intent(this, GomokuActivity.class));
-//        });
-
-        cardTicTacToe.setOnClickListener(v -> {
-            v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(100)
-                    .withEndAction(() -> {
-                        v.animate().scaleX(1f).scaleY(1f).setDuration(100);
-                        startActivity(new Intent(this, TicTacToeActivity.class));
-                    });
-        });
-
         //Spinner Setup
         // Array multiple theme
-        String[] themes = {"🎨 Light","🌙 Dark","🔵 Blue Gradient","🟠 Orange Gradient"};
+//        String[] themes = {"🎨 Light","🌙 Dark","🔵 Blue Gradient","🟠 Orange Gradient"};
         // multiple theme addapter
-        ArrayAdapter<CharSequence> adapter =
-                ArrayAdapter.createFromResource(
+        ArrayAdapter<String> adapter =
+                new ArrayAdapter<>(
                         this,
-                        R.array.themes,
-                        android.R.layout.simple_spinner_item
+                        android.R.layout.simple_spinner_dropdown_item,
+                        themes
                 );
 
-        adapter.setDropDownViewResource(
-                android.R.layout.simple_spinner_dropdown_item
-        );
+        themeSpinner.setAdapter(adapter);
 
-        spinnerTheme.setAdapter(adapter);
+        // Load Saved Theme
+        int currentTheme =
+                ThemeManager.getTheme(this);
 
-//        int savedTheme = prefs.getInt("theme_index", 1);
-        //Load theme
-        int savedTheme = ThemeManager.getTheme(this);
+        for(int i=0; i<themes.length; i++) {
 
-        spinnerTheme.setSelection(savedTheme);
+            if(themes[i].equals(currentTheme)) {
 
-        ThemeManager.applyBackground(
-                this,
-                mainLayout
-        );
+                themeSpinner.setSelection(i);
+                break;
+            }
+        }
 
-        applyThemeToMain(savedTheme);
+        // Apply Theme
+        ThemeManager.applyTheme(this, rootLayout);
 
-//        spinnerTheme.setOnItemSelectedListener(
-//                new AdapterView.OnItemSelectedListener() {
-//
-//                    @Override
-//                    public void onItemSelected(
-//                            AdapterView<?> parent,
-//                            View view,
-//                            int position,
-//                            long id) {
-//
-//                        // first auto trigger ignore
-//                        if (!isSpinnerInitialized) {
-//                            isSpinnerInitialized = true;
-//                            return;
-//                        }
-//
-//                        // save selected theme
-//                        prefs.edit()
-//                                .putInt("theme_index", position)
-//                                .apply();
-//
-//                        // apply current theme
-//                        applyThemeToMain(position);
-//                    }
-//
-//                    @Override
-//                    public void onNothingSelected(AdapterView<?> parent) {
-//
-//                    }
-//                });
-
-        spinnerTheme.setOnItemSelectedListener(
-                new AdapterView.OnItemSelectedListener() {
+        // Theme Change
+        themeSpinner.setOnItemSelectedListener(
+                new android.widget.AdapterView.OnItemSelectedListener() {
 
                     @Override
                     public void onItemSelected(
-                            AdapterView<?> parent,
+                            android.widget.AdapterView<?> parent,
                             View view,
                             int position,
-                            long id
-                    ) {
+                            long id) {
+
+                        int selectedTheme = ThemeManager.THEME_LIGHT;
+
+                        switch (position) {
+
+                            case 0:
+                                selectedTheme = ThemeManager.THEME_LIGHT;
+                                break;
+
+                            case 1:
+                                selectedTheme = ThemeManager.THEME_DARK;
+                                break;
+
+                            case 2:
+                                selectedTheme = ThemeManager.THEME_BLUE;
+                                break;
+
+                            case 3:
+                                selectedTheme = ThemeManager.THEME_ORANGE;
+                                break;
+                        }
+
+                        // SAME THEME → DO NOTHING
+                        if (ThemeManager.currentTheme
+                                == selectedTheme) {
+                            return;
+                        }
 
                         // SAVE THEME
                         ThemeManager.saveTheme(
                                 MainActivity.this,
-                                position
+                                selectedTheme
                         );
 
-                        // APPLY THEME
-                        ThemeManager.applyBackground(
-                                MainActivity.this,
-                                mainLayout
-                        );
+                        // REFRESH ACTIVITY
+                        recreate();
                     }
 
                     @Override
                     public void onNothingSelected(
-                            AdapterView<?> parent
-                    ) {
-
+                            android.widget.AdapterView<?> parent) {
                     }
                 });
 
@@ -251,299 +246,7 @@ public class MainActivity extends AppCompatActivity {
             //change name
             showNameDialog();
         });
-
-        //card animation
-        setupCardAnimation(cardTicTacToe);
-        setupCardAnimation(cardMemory);
-        setupCardAnimation(cardFiveInARow);
-
-        //RGB Glow Function
-        startRGBGlow(cardTicTacToe);
-        startRGBGlow(cardMemory);
-        startRGBGlow(cardFiveInARow);
-
     }
-
-    private void applyThemeToMain(int theme) {
-
-        switch (theme) {
-            // 🎨 LIGHT
-            case 0:
-                mainLayout.setBackgroundColor(Color.WHITE);
-                break;
-            // 🌙 DARK
-            case 1:
-                mainLayout.setBackgroundColor(Color.parseColor("#020617"));
-                break;
-            // 🔵 BLUE
-            case 2:
-                GradientDrawable blue =
-                        new GradientDrawable(
-                                GradientDrawable.Orientation.TOP_BOTTOM,
-                                new int[]{
-                                        Color.parseColor("#0f172a"),
-                                        Color.parseColor("#2563eb")
-                                });
-                mainLayout.setBackground(blue);
-                break;
-            // 🟠 ORANGE
-            case 3:
-                GradientDrawable orange =
-                        new GradientDrawable(
-                                GradientDrawable.Orientation.TOP_BOTTOM,
-                                new int[]{
-                                        Color.parseColor("#7c2d12"),
-                                        Color.parseColor("#fb923c")
-                                });
-                mainLayout.setBackground(orange);
-                break;
-        }
-    }
-
-    //RGB Glow Function
-    private void startRGBGlow(View view) {
-
-        ValueAnimator animator =
-                ValueAnimator.ofArgb(
-                        Color.RED,
-                        Color.GREEN,
-                        Color.BLUE,
-                        Color.MAGENTA,
-                        Color.CYAN,
-                        Color.RED
-                );
-
-        animator.setDuration(4000);
-
-        animator.setRepeatCount(
-                ValueAnimator.INFINITE
-        );
-
-        animator.addUpdateListener(animation -> {
-
-            int color = (int) animation.getAnimatedValue();
-
-            GradientDrawable drawable =
-                    new GradientDrawable();
-
-            drawable.setColor(
-                    Color.parseColor("#0f172a")
-            );
-
-            drawable.setCornerRadius(28);
-
-            drawable.setStroke(4, color);
-
-            view.setBackground(drawable);
-        });
-
-        animator.start();
-    }
-
-    //final theme engine
-//    private void applyTheme(int theme) {
-//        mainLayout.animate()
-//                .alpha(0f)
-//                .setDuration(150)
-//                .withEndAction(() -> {
-//
-//                    applyThemeNow(theme);
-//
-//                    mainLayout.animate()
-//                            .alpha(1f)
-//                            .setDuration(150);
-//
-//                });
-//    }
-
-//    private void applyThemeNow(int theme) {
-//        int bgColor;
-//        int textColor;
-//        int cardColor;
-//        int borderColor;
-//        int buttonColor;
-//        int buttonTextColor;
-//        int shadowColor;
-//
-//        GradientDrawable gradient = null;
-//
-//        switch (theme) {
-//
-//            // 🎨 LIGHT
-//            case 0:
-//
-//                bgColor = Color.parseColor("#f8fafc");
-//                textColor = Color.BLACK;
-//                cardColor = Color.WHITE;
-//                borderColor = Color.parseColor("#cbd5e1");
-//                buttonColor = Color.parseColor("#2563eb");
-//                buttonTextColor = Color.WHITE;
-//                shadowColor = Color.GRAY;
-//
-//                mainLayout.setBackgroundColor(bgColor);
-//
-//                break;
-//
-//            // 🌙 DARK
-//            case 1:
-//
-//                bgColor = Color.parseColor("#020617");
-//                textColor = Color.WHITE;
-//                cardColor = Color.parseColor("#0f172a");
-//                borderColor = Color.parseColor("#22c55e");
-//                buttonColor = Color.parseColor("#14532d");
-//                buttonTextColor = Color.WHITE;
-//                shadowColor = Color.BLACK;
-//
-//                mainLayout.setBackgroundColor(bgColor);
-//
-//                break;
-//
-//            // 🔵 BLUE
-//            case 2:
-//
-//                textColor = Color.WHITE;
-//                cardColor = Color.parseColor("#1e3a8a");
-//                borderColor = Color.parseColor("#60a5fa");
-//                buttonColor = Color.parseColor("#2563eb");
-//                buttonTextColor = Color.WHITE;
-//                shadowColor = Color.parseColor("#1e40af");
-//
-//                gradient = new GradientDrawable(
-//                        GradientDrawable.Orientation.TOP_BOTTOM,
-//                        new int[]{
-//                                Color.parseColor("#0f172a"),
-//                                Color.parseColor("#2563eb")
-//                        });
-//
-//                mainLayout.setBackground(gradient);
-//
-//                break;
-//
-//            // 🟠 ORANGE
-//            default:
-//
-//                textColor = Color.WHITE;
-//                cardColor = Color.parseColor("#9a3412");
-//                borderColor = Color.parseColor("#fdba74");
-//                buttonColor = Color.parseColor("#ea580c");
-//                buttonTextColor = Color.WHITE;
-//                shadowColor = Color.parseColor("#7c2d12");
-//
-//                gradient = new GradientDrawable(
-//                        GradientDrawable.Orientation.TOP_BOTTOM,
-//                        new int[]{
-//                                Color.parseColor("#7c2d12"),
-//                                Color.parseColor("#fb923c")
-//                        });
-//
-//                mainLayout.setBackground(gradient);
-//
-//                break;
-//        }
-//
-//        // =========================
-//        // TEXT COLORS
-//        // =========================
-//
-//        txtWelcome.setTextColor(textColor);
-//
-//        title.setTextColor(textColor);
-//
-//        title.setShadowLayer(
-//                8,
-//                2,
-//                2,
-//                shadowColor
-//        );
-//
-//        // =========================
-//        // BUTTONS
-//        // =========================
-//
-//        styleButton(btnSignIn,
-//                buttonColor,
-//                buttonTextColor,
-//                borderColor);
-//
-//        styleButton(btnShare,
-//                buttonColor,
-//                buttonTextColor,
-//                borderColor);
-//
-//        // =========================
-//        // SPINNER
-//        // =========================
-//
-//        GradientDrawable spinnerBg =
-//                new GradientDrawable();
-//
-//        spinnerBg.setColor(cardColor);
-//
-//        spinnerBg.setCornerRadius(16);
-//
-//        spinnerBg.setStroke(
-//                3,
-//                borderColor
-//        );
-//
-//        spinnerTheme.setBackground(spinnerBg);
-//
-//        // =========================
-//        // CARDS
-//        // =========================
-//
-//        styleCard(cardTicTacToe,
-//                cardColor,
-//                borderColor);
-//
-//        styleCard(cardMemory,
-//                cardColor,
-//                borderColor);
-//
-//        styleCard(cardGomoku,
-//                cardColor,
-//                borderColor);
-//    }
-//
-//    private void styleButton(
-//            Button button,
-//            int bgColor,
-//            int textColor,
-//            int borderColor) {
-//
-//        GradientDrawable drawable =
-//                new GradientDrawable();
-//
-//        drawable.setColor(bgColor);
-//
-//        drawable.setCornerRadius(18);
-//
-//        drawable.setStroke(3, borderColor);
-//
-//        button.setBackground(drawable);
-//
-//        button.setTextColor(textColor);
-//    }
-//
-//    private void styleCard(
-//            LinearLayout card,
-//            int bgColor,
-//            int borderColor) {
-//
-//        GradientDrawable drawable =
-//                new GradientDrawable();
-//
-//        drawable.setColor(bgColor);
-//
-//        drawable.setCornerRadius(28);
-//
-//        drawable.setStroke(3, borderColor);
-//
-//        card.setBackground(drawable);
-//
-//        card.setElevation(12f);
-//    }
 
     //Game Card Hover / Click Animations
     private void setupCardAnimation(LinearLayout card) {
@@ -613,6 +316,77 @@ public class MainActivity extends AppCompatActivity {
         });
 
         builder.show();
+    }
+
+
+
+    //setup game card
+    private void setupGameCard(
+            int cardId,
+            String title,
+            String desc,
+            int icon,
+            Class<?> activityClass
+    ) {
+
+//        View card = findViewById(cardId);
+        MaterialCardView cardView = findViewById(cardId);
+        TextView titleView = cardView.findViewById(R.id.gameTitle);
+        TextView descView = cardView.findViewById(R.id.gameDesc);
+        ImageView iconView = cardView.findViewById(R.id.gameIcon);
+//        MaterialCardView cardView = card.findViewById(R.id.gameCard);
+
+        titleView.setText(title);
+        descView.setText(desc);
+        iconView.setImageResource(icon);
+
+        // APPLY THEME
+        ThemeManager.applyCardTheme(
+                this,
+                cardView,
+                titleView,
+                descView
+        );
+
+        // Animation
+        cardView.setScaleX(0.8f);
+        cardView.setScaleY(0.8f);
+        cardView.setAlpha(0f);
+
+        cardView.animate()
+                .scaleX(1f)
+                .scaleY(1f)
+                .alpha(1f)
+                .setDuration(500)
+                .start();
+
+        // Click
+        cardView.setOnClickListener(v -> {
+
+            // Click Animation
+            v.animate()
+                    .scaleX(0.95f)
+                    .scaleY(0.95f)
+                    .setDuration(100)
+                    .withEndAction(() -> {
+
+                        v.animate()
+                                .scaleX(1f)
+                                .scaleY(1f)
+                                .setDuration(100)
+                                .start();
+
+                        startActivity(
+                                new Intent(
+                                        MainActivity.this,
+                                        activityClass
+                                )
+                        );
+
+                    }).start();
+
+        });
+
     }
 
     @Override

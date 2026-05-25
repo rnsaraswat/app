@@ -1,23 +1,23 @@
 package com.example.ravindragameshub.reversi;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.*;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.ravindragameshub.BaseGameActivity;
 import com.example.ravindragameshub.R;
 import com.example.ravindragameshub.common.SoundManager;
-import com.example.ravindragameshub.reversi.ReversiActivity;
+import com.example.ravindragameshub.common.ThemeManager;
 
 public class ReversiActivity extends AppCompatActivity {
     ReversiGameView reversiGameView;
     Button btnUndo;
 
     TextView txtStatus, txtScore;
-
+    LinearLayout rootLayout;
     Spinner spinnerMode, spinnerLevel;
 
     String player1 = "Player 1";
@@ -29,7 +29,18 @@ public class ReversiActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reversi);
 
+//        HeaderHelper.setupHeader(this);
+        //apply theme
+        rootLayout = findViewById(R.id.rootLayout);
+
+        // Theme Apply
+        ThemeManager.applyTheme(
+                this,
+                rootLayout
+        );
+
         reversiGameView = findViewById(R.id.gameView);
+        reversiGameView.setActivity(this);
         btnUndo = findViewById(R.id.btnUndo);
 
         txtStatus = findViewById(R.id.txtStatus);
@@ -40,6 +51,39 @@ public class ReversiActivity extends AppCompatActivity {
 
         Button btnRestart = findViewById(R.id.btnRestart);
         Button btnUndo = findViewById(R.id.btnUndo);
+
+        Button btnHome =
+                findViewById(R.id.btnHome);
+
+        Button btnShare =
+                findViewById(R.id.btnShare);
+
+        btnHome.setOnClickListener(v -> {
+
+            finish();
+
+        });
+
+        btnShare.setOnClickListener(v -> {
+
+            Intent shareIntent =
+                    new Intent(Intent.ACTION_SEND);
+
+            shareIntent.setType("text/plain");
+
+            shareIntent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    "Play Ravindra Games Hub!"
+            );
+
+            startActivity(
+                    Intent.createChooser(
+                            shareIntent,
+                            "Share App"
+                    )
+            );
+        });
+
 
         SharedPreferences pref =
                 getSharedPreferences("game",MODE_PRIVATE);
@@ -152,6 +196,19 @@ public class ReversiActivity extends AppCompatActivity {
         ).post(() -> {
             reversiGameView.initGame();
         });
+
+    }
+
+    // theme update on Screen reopen
+    @Override
+    protected void onResume() {
+
+        super.onResume();
+
+        ThemeManager.applyTheme(
+                this,
+                rootLayout
+        );
     }
 
     void askPlayer2Name(){

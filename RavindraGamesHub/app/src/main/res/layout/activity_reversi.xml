@@ -2,100 +2,133 @@
 
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center_horizontal"
     android:background="#111111">
 
-    <!-- Top Space -->
+    <!-- TOP EMPTY SPACE -->
     <Space
         android:layout_width="match_parent"
-        android:layout_height="40dp"/>
+        android:layout_height="20dp"/>
 
-    <!-- 3D Title -->
-    <TextView
-        android:id="@+id/titleText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Reversi"
-        android:textSize="34sp"
-        android:textStyle="bold"
-        android:textColor="#FFFFFF"
-        android:shadowColor="#00FFFF"
-        android:shadowDx="4"
-        android:shadowDy="4"
-        android:shadowRadius="8"
-        android:paddingBottom="10dp"/>
+    <!-- Common header -->
+    <include
+        layout="@layout/common_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
 
-    <!-- Controls -->
+    <!-- TOP BAR -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="8dp">
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp">
 
+        <Button
+            android:id="@+id/btnHome"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Home"/>
+
+        <TextView
+            android:id="@+id/gameTitle"
+            android:tag="gameHeader"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Reversi"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp"
+            android:textStyle="bold"/>
+
+        <Button
+            android:id="@+id/btnShare"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Share"/>
+    </LinearLayout>
+
+    <!-- GAME AREA CENTER -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <!-- STATUS -->
+        <TextView
+            android:id="@+id/txtStatus"
+            android:tag="status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Player Turn"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"/>
+
+        <!-- SCORE -->
+        <TextView
+            android:id="@+id/txtScore"
+            android:tag="score"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:text="Black : 2   White : 2"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"/>
+
+        <!-- MODE -->
         <Spinner
             android:id="@+id/spinnerMode"
-            android:layout_width="0dp"
+            android:layout_width="220dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"/>
+            android:layout_marginTop="10dp"/>
 
+        <!-- LEVEL -->
         <Spinner
             android:id="@+id/spinnerLevel"
-            android:layout_width="0dp"
+            android:layout_width="220dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"/>
+            android:layout_marginTop="6dp"/>
+
+        <!-- GAME BOARD -->
+        <com.example.ravindragameshub.reversi.ReversiGameView
+            android:id="@+id/gameView"
+            android:layout_width="340dp"
+            android:layout_height="340dp"
+            android:layout_marginTop="12dp"/>
+
+        <!-- GAME BUTTONS -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnRestart"
+                android:layout_width="140dp"
+                android:layout_height="wrap_content"
+                android:text="Restart"/>
+
+            <Button
+                android:id="@+id/btnUndo"
+                android:layout_width="140dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:text="Undo"/>
+        </LinearLayout>
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/txtStatus"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        android:text="Status"/>
-
-    <TextView
-        android:id="@+id/txtScore"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        android:paddingBottom="10dp"
-        android:text="Black : 2  White : 2"/>
-
-    <!-- Game Board -->
-    <com.example.ravindragameshub.reversi.ReversiGameView
-        android:id="@+id/gameView"
-        android:layout_width="340dp"
-        android:layout_height="340dp"/>
-
-    <!-- Bottom Buttons -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/btnRestart"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Restart"/>
-
-        <Button
-            android:id="@+id/btnUndo"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Undo"/>
-    </LinearLayout>
-
-    <!-- Bottom Empty Space -->
+    <!-- BOTTOM EMPTY SPACE -->
     <Space
         android:layout_width="match_parent"
-        android:layout_height="40dp"/>
+        android:layout_height="20dp"/>
 
 </LinearLayout>

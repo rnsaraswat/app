@@ -3,6 +3,7 @@ package com.example.ravindragameshub.reversi;
 import android.content.Context;
 import android.graphics.*;
         import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -12,6 +13,8 @@ import com.example.ravindragameshub.reversi.ReversiActivity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import android.animation.AnimatorSet;
+import android.animation.ValueAnimator;
 
 public class ReversiGameView extends View {
 
@@ -19,11 +22,12 @@ public class ReversiGameView extends View {
     Paint paint = new Paint();
 
     int[][] board = new int[8][8];
+    float[][] animScale = new float[8][8];
 
     boolean blackTurn = true;
     boolean gameOver = false;
 
-    private ReversiActivity activity;
+//    private ReversiActivity activity;
 
     List<ReversiGameState> history = new ArrayList<>();
 
@@ -39,30 +43,44 @@ public class ReversiGameView extends View {
         this.activity = activity;
     }
 
+    private ReversiActivity activity;
+    public void setActivity(ReversiActivity activity) {
+
+        this.activity = activity;
+    }
+
     public ReversiGameView(Context context) {
         super(context);
-        init(context);
+//        setLayerType(LAYER_TYPE_HARDWARE, null);
+//        init(context);
+        init();
     }
 
     public ReversiGameView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init(context);
+//        init(context);
+        init();
     }
 
     public ReversiGameView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init(context);
+//        init(context);
+        init();
     }
 
-    private void init(Context context) {
+    private void init() {
 
-        if(context instanceof ReversiActivity) {
-            activity = (ReversiActivity) context;
-        }
+        initGame();
+
+        setFocusable(true);
+
+        setFocusableInTouchMode(true);
+
     }
 
     void initGame() {
 
+//        Log.d("REVERSI", "INIT");
         for(int i=0;i<8;i++)
             for(int j=0;j<8;j++)
                 board[i][j]=0;
@@ -83,6 +101,14 @@ public class ReversiGameView extends View {
 
         if(activity != null) {
             activity.updateUndoText();
+        }
+
+        for(int i=0;i<8;i++) {
+
+            for(int j=0;j<8;j++) {
+
+                animScale[i][j] = 1f;
+            }
         }
     }
 
@@ -107,46 +133,146 @@ public class ReversiGameView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+//        Log.d("REVERSI", "DRAW");
 
-        float size = getWidth()/8f;
+//        canvas.drawColor(Color.RED);
+//        float size = getWidth()/8f;
 
-        paint.setColor(Color.GREEN);
-        canvas.drawRect(0,0,getWidth(),getHeight(),paint);
+        float boardSize =
+                Math.min(getWidth(), getHeight());
+
+        float size = boardSize / 8f;
+
+        //board draw
+//        paint.setColor(Color.GREEN);
+//        canvas.drawRect(0,0,getWidth(),getHeight(),paint);
+
+        //board draw
+        paint.setColor(Color.rgb(0,120,0));
+
+        canvas.drawRect(
+                0,
+                0,
+                boardSize,
+                boardSize,
+                paint
+        );
+
+        paint.setColor(Color.BLACK);
+
+//        for(int i=0;i<=8;i++) {
+//            canvas.drawLine(i*size,0,i*size,8*size,paint);
+//            canvas.drawLine(0,i*size,8*size,i*size,paint);
+//        }
+
+        //Grid Lines
+        paint.setShader(null);
+        paint.clearShadowLayer();
+
+        paint.setStyle(Paint.Style.STROKE);
+
+        paint.setStrokeWidth(3);
 
         paint.setColor(Color.BLACK);
 
         for(int i=0;i<=8;i++) {
-            canvas.drawLine(i*size,0,i*size,8*size,paint);
-            canvas.drawLine(0,i*size,8*size,i*size,paint);
+
+            canvas.drawLine(
+                    i*size,
+                    0,
+                    i*size,
+                    8*size,
+                    paint
+            );
+
+            canvas.drawLine(
+                    0,
+                    i*size,
+                    8*size,
+                    i*size,
+                    paint
+            );
         }
 
+        paint.setStyle(Paint.Style.FILL);
+
+        //3d disc drawing loop
         for(int r=0;r<8;r++) {
+
             for(int c=0;c<8;c++) {
 
-                if(board[r][c]==1) {
-                    paint.setColor(Color.BLACK);
+                if(board[r][c] != 0) {
+
+                    float cx = c * size + size/2;
+                    float cy = r * size + size/2;
+
+                    float scaleX = animScale[r][c];
+
+                    canvas.save();
+
+                    canvas.translate(cx, cy);
+
+                    canvas.scale(scaleX, 1f);
+
+                    if(board[r][c] == 1) {
+
+                        RadialGradient blackGradient =
+                                new RadialGradient(
+                                        -10,
+                                        -10,
+                                        size/2,
+                                        Color.LTGRAY,
+                                        Color.BLACK,
+                                        Shader.TileMode.CLAMP
+                                );
+
+                        paint.setShader(blackGradient);
+
+                        paint.setShadowLayer(
+                                12,
+                                4,
+                                4,
+                                Color.BLACK
+                        );
+
+                    } else {
+
+                        RadialGradient whiteGradient =
+                                new RadialGradient(
+                                        -10,
+                                        -10,
+                                        size/2,
+                                        Color.WHITE,
+                                        Color.GRAY,
+                                        Shader.TileMode.CLAMP
+                                );
+
+                        paint.setShader(whiteGradient);
+
+                        paint.setShadowLayer(
+                                12,
+                                4,
+                                4,
+                                Color.DKGRAY
+                        );
+                    }
 
                     canvas.drawCircle(
-                            c*size+size/2,
-                            r*size+size/2,
-                            size/2-10,
+                            0,
+                            0,
+                            Math.max(size/2 - 10, 8),
                             paint
                     );
-                }
-
-                if(board[r][c]==2) {
-                    paint.setColor(Color.WHITE);
-
-                    canvas.drawCircle(
-                            c*size+size/2,
-                            r*size+size/2,
-                            size/2-10,
-                            paint
-                    );
+                    canvas.restore();
                 }
             }
+
+            paint.setShader(null);
+            paint.clearShadowLayer();
+            paint.setStyle(Paint.Style.FILL);
         }
 
+        //draw yellow dots
         paint.setColor(Color.YELLOW);
 
         for(int r=0;r<8;r++) {
@@ -169,25 +295,31 @@ public class ReversiGameView extends View {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
-        if(gameOver)
-            return true;
+        if(event.getAction() != MotionEvent.ACTION_DOWN)
+            return false;
 
-        if(event.getAction()!=MotionEvent.ACTION_DOWN)
-            return true;
+        float size = getWidth() / 8f;
 
-        float size = getWidth()/8f;
+        int col = (int)(event.getX() / size);
+        int row = (int)(event.getY() / size);
 
-        int col = (int)(event.getX()/size);
-        int row = (int)(event.getY()/size);
+        if(row < 0 || row >= 8 ||
+                col < 0 || col >= 8) {
 
-        if(isValidMove(row,col)) {
+            return false;
+        }
+
+        Log.d("REVERSI",
+                "row=" + row +
+                        " col=" + col);
+
+        if(isValidMove(row, col)) {
+
             SoundManager.playClick();
 
             saveState();
 
-            makeMove(row,col);
-
-            if(activity != null) activity.updateUndoText();
+            makeMove(row, col);
 
             blackTurn = !blackTurn;
 
@@ -195,14 +327,91 @@ public class ReversiGameView extends View {
 
             invalidate();
 
-            if(mode.equals("Player vs AI") && !blackTurn) {
+        } else {
 
-                postDelayed(() -> aiMove(),500);
-            }
+            SoundManager.playError();
         }
-        SoundManager.playError();
+
         return true;
     }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec,
+                             int heightMeasureSpec) {
+
+        int size = MeasureSpec.getSize(widthMeasureSpec);
+
+        setMeasuredDimension(size, size);
+    }
+
+//    public boolean onTouchEvent(MotionEvent event) {
+//
+//        Log.d("REVERSI", "TOUCH");
+//        if(gameOver)
+//            return true;
+//
+////        if(event.getAction()!=MotionEvent.ACTION_DOWN)
+////            return true;
+//        if(event.getAction() == MotionEvent.ACTION_DOWN){
+//
+//            Log.d("REVERSI", "TOUCH WORKING");
+//
+//            invalidate();
+//        }
+//
+////        float size = getWidth()/8f;
+////
+////        int col = (int)(event.getX()/size);
+////        int row = (int)(event.getY()/size);
+//
+////        float size = getWidth() / 8f;
+//
+//        float boardSize =
+//                Math.min(getWidth(), getHeight());
+//
+//        float size = boardSize / 8f;
+//
+//        float touchX = event.getX();
+//        float touchY = event.getY();
+//
+//        int col = (int)(touchX / size);
+//        int row = (int)(touchY / size);
+//
+//        if(row < 0 || row >= 8 ||
+//                col < 0 || col >= 8) {
+//
+//            return true;
+//        }
+//
+//        if(isValidMove(row,col)) {
+//            SoundManager.playClick();
+//
+//            saveState();
+//
+//            makeMove(row,col);
+//
+//            if(activity != null) activity.updateUndoText();
+//
+//            blackTurn = !blackTurn;
+//
+//            updateScore();
+//
+//            invalidate();
+//
+//            if(mode.equals("Player vs AI") && !blackTurn) {
+//
+//                postDelayed(() -> aiMove(),500);
+//            }
+//        }else {
+//
+//            if(activity != null) {
+//
+//                SoundManager.playError();
+//            }
+//        }
+//
+//        return true;
+//    }
 
     //AI Move
     void aiMove() {
@@ -212,16 +421,29 @@ public class ReversiGameView extends View {
 
         List<int[]> moves = new ArrayList<>();
 
-        int bestScore = -999;
+        int bestScore = -999999;
         int[] bestMove = null;
 
         for(int r=0;r<8;r++) {
+
             for(int c=0;c<8;c++) {
 
                 if(isValidMove(r,c)) {
-                    SoundManager.playClick();
 
-                    int score = evaluateMove(r,c);
+                    int score;
+
+                    if(activity.selectedDifficulty.equals("Easy")) {
+
+                        score = new Random().nextInt(20);
+
+                    } else if(activity.selectedDifficulty.equals("Medium")) {
+
+                        score = evaluateMediumMove(r,c);
+
+                    } else {
+
+                        score = evaluateHardMove(r,c);
+                    }
 
                     if(score > bestScore) {
 
@@ -231,41 +453,21 @@ public class ReversiGameView extends View {
 
                     moves.add(new int[]{r,c});
                 }
-                SoundManager.playError();
             }
         }
 
-        if(moves.size()==0) {
+        if(bestMove == null) {
 
             blackTurn = true;
 
-            if(activity != null) {
-                SoundManager.playPass();
-                activity.txtStatus.setText("AI PASS");
-            }
+            checkPassTurn();
+
             return;
-        }
-
-        int[] move;
-
-        if(activity.selectedDifficulty.equals("Easy")) {
-
-            move = moves.get(new Random().nextInt(moves.size()));
-
-        } else if(activity.selectedDifficulty.equals("Medium")) {
-
-            move = bestMove;
-
-        } else {
-
-            move = bestMove;
         }
 
         saveState();
 
-        makeMove(move[0], move[1]);
-
-        if(activity != null) activity.updateUndoText();
+        makeMove(bestMove[0], bestMove[1]);
 
         blackTurn = true;
 
@@ -274,26 +476,160 @@ public class ReversiGameView extends View {
         invalidate();
     }
 
-    //evaluation AI move
-    int evaluateMove(int r,int c) {
+    //Medium AI
+    int evaluateMediumMove(int r,int c) {
 
         int score = 0;
 
-        // Corner priority
+        score += countFlips(r,c) * 10;
+
+        if(r==0 || r==7 || c==0 || c==7)
+            score += 20;
+
         if((r==0 && c==0) ||
                 (r==0 && c==7) ||
                 (r==7 && c==0) ||
                 (r==7 && c==7)) {
 
-            score += 100;
-        }
-
-        // Edge priority
-        if(r==0 || r==7 || c==0 || c==7) {
-            score += 20;
+            score += 80;
         }
 
         return score;
+    }
+
+    //Hard AI
+    int evaluateHardMove(int r,int c) {
+
+        int score = 0;
+
+        // Corner
+        if((r==0 && c==0) ||
+                (r==0 && c==7) ||
+                (r==7 && c==0) ||
+                (r==7 && c==7)) {
+
+            score += 1000;
+        }
+
+        // Edge
+        if(r==0 || r==7 || c==0 || c==7) {
+
+            score += 120;
+        }
+
+        // Avoid dangerous near-corner positions
+        if((r==1 && c==1) ||
+                (r==1 && c==6) ||
+                (r==6 && c==1) ||
+                (r==6 && c==6)) {
+
+            score -= 200;
+        }
+
+        // Avoid near edges beside corners
+        if((r==0 && (c==1 || c==6)) ||
+                (r==7 && (c==1 || c==6)) ||
+                (c==0 && (r==1 || r==6)) ||
+                (c==7 && (r==1 || r==6))) {
+
+            score -= 150;
+        }
+
+        // More flips
+        score += countFlips(r,c) * 30;
+
+        // Mobility reduction
+        score -= opponentMoveCountAfterMove(r,c) * 25;
+
+        return score;
+    }
+
+    //Flip Count
+    int countFlips(int r,int c) {
+
+        int flips = 0;
+
+        int player = 2;
+        int enemy = 1;
+
+        int[] dx = {-1,-1,-1,0,0,1,1,1};
+        int[] dy = {-1,0,1,-1,1,-1,0,1};
+
+        for(int d=0; d<8; d++) {
+
+            int rr = r + dx[d];
+            int cc = c + dy[d];
+
+            int temp = 0;
+
+            while(rr>=0 && cc>=0 && rr<8 && cc<8) {
+
+                if(board[rr][cc] == enemy) {
+
+                    temp++;
+
+                } else if(board[rr][cc] == player) {
+
+                    flips += temp;
+                    break;
+
+                } else {
+
+                    break;
+                }
+
+                rr += dx[d];
+                cc += dy[d];
+            }
+        }
+
+        return flips;
+    }
+
+    //Opponent Mobility
+    int opponentMoveCountAfterMove(int r,int c) {
+
+        int[][] temp = new int[8][8];
+
+        for(int i=0;i<8;i++) {
+
+            for(int j=0;j<8;j++) {
+
+                temp[i][j] = board[i][j];
+            }
+        }
+
+        boolean oldTurn = blackTurn;
+
+        makeMove(r,c);
+
+        blackTurn = true;
+
+        int count = 0;
+
+        for(int i=0;i<8;i++) {
+
+            for(int j=0;j<8;j++) {
+
+                if(isValidMove(i,j)) {
+
+                    count++;
+                }
+            }
+        }
+
+        // Restore board
+        for(int i=0;i<8;i++) {
+
+            for(int j=0;j<8;j++) {
+
+                board[i][j] = temp[i][j];
+            }
+        }
+
+        blackTurn = oldTurn;
+
+        return count;
     }
 
     //check for valid move
@@ -348,6 +684,7 @@ public class ReversiGameView extends View {
         int player = blackTurn ? 1 : 2;
 
         board[r][c] = player;
+        animateFlip(r, c);
 
         flip(r,c,1,0);
         flip(r,c,-1,0);
@@ -376,8 +713,11 @@ public class ReversiGameView extends View {
                 list.add(new int[]{rr,cc});
             } else if(board[rr][cc]==player){
                 for(int[] p:list) {
-                    SoundManager.playFlip();
                     board[p[0]][p[1]] = player;
+                    animateFlip(p[0], p[1]);
+                    if(activity != null) {
+                        SoundManager.playFlip();
+                    }
                 }
                 return;
             } else {
@@ -390,6 +730,7 @@ public class ReversiGameView extends View {
 
     //save game state
     void saveState(){
+        SoundManager.tapClick();
         history.add(new ReversiGameState(board,blackTurn));
     }
 
@@ -471,6 +812,7 @@ public class ReversiGameView extends View {
 
             checkPassTurn();
         }
+        invalidate();
     }
 
     //check move possible
@@ -538,10 +880,23 @@ public class ReversiGameView extends View {
             String result;
             if(black > white) {
                 result = activity.player1 + " Wins";
+                if(activity != null) {
+                    SoundManager.playWin();
+                }
             } else if(white > black) {
                 result = activity.player2 + " Wins";
+                if(activity != null) {
+                    if(mode.equals("Player vs AI")) {
+                        SoundManager.playLose();
+                    } else {
+                        SoundManager.playWin();
+                    }
+                }
             } else {
                 result = "Game Draw";
+                if(activity != null) {
+                    SoundManager.playDraw();
+                }
             }
             if(activity != null) {
                 activity.txtStatus.setText(result);
@@ -565,6 +920,7 @@ public class ReversiGameView extends View {
             activity.txtStatus.setText(
                     "PASS - Next Turn"
             );
+            SoundManager.playPass();
         }
 
         // Opponent also no move
@@ -583,5 +939,24 @@ public class ReversiGameView extends View {
 
             postDelayed(() -> aiMove(), 500);
         }
+    }
+
+    //flip animation
+    void animateFlip(int r, int c) {
+
+        ValueAnimator animator =
+                ValueAnimator.ofFloat(1f, 0f, 1f);
+
+        animator.setDuration(300);
+
+        animator.addUpdateListener(animation -> {
+
+            animScale[r][c] =
+                    (float) animation.getAnimatedValue();
+
+            invalidate();
+        });
+
+        animator.start();
     }
 }

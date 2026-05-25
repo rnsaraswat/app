@@ -2,15 +2,14 @@ package com.example.ravindragameshub;
 
 import android.app.AlertDialog;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
-import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.ravindragameshub.common.ThemeManager;
+
 import java.util.*;
-import android.media.MediaPlayer;
 
 public class TicTacToeActivity extends BaseGameActivity {
 
@@ -109,28 +108,6 @@ public class TicTacToeActivity extends BaseGameActivity {
         }
 
         //theme apply
-        //Background Styling
-        ThemeManager.applyBackground(
-                this,
-                rootLayout
-        );
-
-        // 🎮 Header setup
-        HeaderHelper.setupHeader(this);
-
-        //Button Styling
-        ThemeManager.styleButton(
-                this,
-                btnHome
-        );
-        //Text Color
-        ThemeManager.applyTextColor(
-                this,
-                txtTitle
-        );
-
-        // 🎮 Header setup
-        HeaderHelper.setupHeader(this);
         //theme Spinner setup
 //        Spinner themeSpinner = findViewById(R.id.themeSpinner);
 //        ArrayAdapter<String> adapter = new ArrayAdapter<>(
