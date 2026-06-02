@@ -37,6 +37,8 @@ public class GameActivity extends AppCompatActivity {
         int textColor;
         boolean isGradient;
 
+
+
         Theme(int bgStart, int bgEnd, int btn, int text, boolean gradient) {
             bgColorStart = bgStart;
             bgColorEnd = bgEnd;
@@ -66,6 +68,8 @@ public class GameActivity extends AppCompatActivity {
             true
     );
     // Theme Array
+    // 🔥 spinner data
+
     Theme[] themes = {lightTheme, darkTheme, blueTheme, orangeTheme};
     // theme names display in dropdown
     String[] themeNames = {"Theme Light", "Theme Dark", "Theme Blue", "Theme Orange"};
@@ -118,6 +122,8 @@ public class GameActivity extends AppCompatActivity {
     LinearLayout resultBox;
     Button btnOk;
 
+    Spinner modeSpinner, difficultySpinner;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -133,29 +139,38 @@ public class GameActivity extends AppCompatActivity {
         tvTime = findViewById(R.id.tvTime);
         btnPause = findViewById(R.id.btnPause);
         tvMoves = findViewById(R.id.tvMoves);
+//        themeSpinner = findViewById(R.id.themeSpinner);
+        modeSpinner = findViewById(R.id.modeSpinner);
+        difficultySpinner = findViewById(R.id.difficultySpinner);
 
-        //score display
-        resultBox = findViewById(R.id.resultBox);
-        btnOk = findViewById(R.id.btnOk);
-        resultOverlay = findViewById(R.id.resultOverlay);
-        tvResultTitle = findViewById(R.id.tvResultTitle);
-        tvResultMoves = findViewById(R.id.tvResultMoves);
-        tvResultTime = findViewById(R.id.tvResultTime);
-        tvResultScore = findViewById(R.id.tvResultScore);
-        //Neon Glow
-        tvResultTitle.setShadowLayer(20, 0, 0, Color.CYAN);
+        String[] modes = {
+                "Player vs Player",
+                "Player vs AI"
+        };
 
+        String[] levels = {
+                "Easy",
+                "Medium",
+                "Hard"
+        };
 
+        ArrayAdapter<String> modeAdapter =
+                new ArrayAdapter<>(
+                        this,
+                        android.R.layout.simple_spinner_dropdown_item,
+                        modes
+                );
 
-        if (fireworkView == null) {
-            Log.d("FW", "FireworkView NULL");
-        }
+        ArrayAdapter<String> difficultyAdapter =
+                new ArrayAdapter<>(
+                        this,
+                        android.R.layout.simple_spinner_dropdown_item,
+                        levels
+                );
 
-        //background music
-        bgMusic = MediaPlayer.create(this, R.raw.bg_music);
-        bgMusic.setLooping(true);
-        //back ground music button listener
-        findViewById(R.id.musicBtn).setOnClickListener(v -> toggleMusic());
+        modeSpinner.setAdapter(modeAdapter);
+        difficultySpinner.setAdapter(difficultyAdapter);
+
         //initialize sound variables
         tapSound = MediaPlayer.create(this, R.raw.tap);
         winSound = MediaPlayer.create(this, R.raw.win);
@@ -176,15 +191,67 @@ public class GameActivity extends AppCompatActivity {
             Toast.makeText(this, "BoardView NULL!", Toast.LENGTH_LONG).show();
         }
 
-        // ✅ यहीं लिखो
-        Intent intent = getIntent();
+        modeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                mode = position;
+//                restart game
+                resetGame();
+                statusText.setText("Mode: " + mode + " Diff: " + difficulty);
+            }
 
-        if (intent != null) {
-            difficulty = intent.getIntExtra("difficulty", 0);
-            mode = intent.getIntExtra("mode", 0);
-        }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
 
-        ai = new AIPlayer(difficulty);
+
+        difficultySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+            @Override
+            public void onItemSelected(AdapterView<?> parent,
+                                       View view,
+                                       int position,
+                                       long id) {
+
+                // 🔥 IMPORTANT
+                difficulty = position;
+
+                // 🔥 NEW AI
+                ai = new AIPlayer(difficulty);
+
+                resetGame();
+
+                // undo limits
+                switch (difficulty) {
+
+                    case 0:
+                        undoLimit = 5;
+                        break;
+
+                    case 1:
+                        undoLimit = 4;
+                        break;
+
+                    case 2:
+                        undoLimit = 3;
+                        break;
+                }
+
+                undoLeft = undoLimit;
+
+                updateUndoText();
+
+                statusText.setText(
+                        "Difficulty: " + difficulty
+                );
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
 
         boardView.setOnCellTouchListener((row, col) -> {
 
@@ -207,17 +274,11 @@ public class GameActivity extends AppCompatActivity {
                         //score
                         long finalTime = gameTimer.getElapsedTime();
                         int baseScore = calculateEfficiencyScore(moveCount, finalTime);
-                        int finalScore = applyDifficulty(baseScore, String.valueOf(difficulty));
+                        int finalScore = applyDifficulty(baseScore, difficulty);
                         // score add Bonus
                         finalScore = applyBonus(finalScore, moveCount, finalTime);
-                        //score save Best
-                        saveBestScore(finalScore);
-                        //Score display in toast
-                        showResultDialog("Player " + currentPlayer + " Wins!", finalScore, moveCount, finalTime);
-//                        showCenterResult("Player " + currentPlayer + " Wins!", moveCount, finalTime, finalScore);
 
                         playSound(winSound);
-//                        fireworkView.startFireworks();
                         fireworkView.startFireworksWithDelay();
                         //display winning time in status text
                         int sec = (int)(finalTime / 1000);
@@ -226,12 +287,9 @@ public class GameActivity extends AppCompatActivity {
                         sec = sec % 60;
                         String result = String.format("%02d:%02d:%02d", hrs, min, sec);
                         statusText.setText("Player " + currentPlayer + " Wins in " + result +" Score:" + finalScore);
-                        restartBtn.setVisibility(View.VISIBLE);
                         return;
                     }
                     Toast.makeText(this, "Player " + currentPlayer + " wins!", Toast.LENGTH_SHORT).show();
-//                    winningCells.clear();
-//                    winningCells.add(new int[]{r, c});
                     return;
                 }
 
@@ -240,10 +298,8 @@ public class GameActivity extends AppCompatActivity {
                     isGameOver = true;
                     handler.removeCallbacks(timerRunnable); // stop UI
                     gameTimer.pause(); // freeze time
-                    statusText.setText("Draw!");
+                    statusText.setText("Draw!   Moves: " + moveCount);
                     playSound(drawSound);
-
-                    restartBtn.setVisibility(View.VISIBLE);
                     return;
                 }
 
@@ -255,6 +311,7 @@ public class GameActivity extends AppCompatActivity {
                     boardView.placeMove(move[0], move[1], 2);
                     //history for undo
                     moveHistory.push(new int[]{move[0], move[1]});
+                    moveCount++;
 
                     // 👉 AI move के बाद भी win check करो
                     if (boardView.checkWin(move[0], move[1])) {
@@ -265,15 +322,12 @@ public class GameActivity extends AppCompatActivity {
 
                         playSound(loseSound);
                         statusText.setText("AI Wins!");
-
-                        restartBtn.setVisibility(View.VISIBLE);
                         return;
                     }
 
-//                    currentPlayer = 1;
                     currentPlayer = 3 - currentPlayer;
-
                     statusText.setText("Player " + currentPlayer + " Turn");
+
                 }
             }
         });
@@ -380,31 +434,6 @@ public class GameActivity extends AppCompatActivity {
         gameTimer.start();
     }
 
-    //score display method
-    private void showCenterResult(String playerName, int moves, long timeMillis, int score) {
-
-        int totalSec = (int)(timeMillis / 1000);
-        int hours = totalSec / 3600;
-        int minutes = (totalSec % 3600) / 60;
-        int seconds = totalSec % 60;
-
-        String timeStr = String.format("%02d:%02d:%02d", hours, minutes, seconds);
-
-        tvResultTitle.setText(playerName + " Wins");
-        tvResultMoves.setText("Moves: " + moves);
-        tvResultTime.setText("Time: " + timeStr);
-        tvResultScore.setText("Score: " + score);
-
-        resultOverlay.setVisibility(View.VISIBLE);
-
-        // 🔥 Auto hide after 3 seconds
-        new Handler().postDelayed(() -> {
-            resultOverlay.setVisibility(View.GONE);
-        }, 3000);
-
-
-    }
-
     //score bonus appy method
     private int applyBonus(int score, int moves, long timeMillis) {
         int timeSec = (int)(timeMillis / 1000);
@@ -433,38 +462,6 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
-    //show score popup
-    private void showResultDialog(String player, int moves, long time, long score ) {
-
-        int totalSec = (int)(time / 1000);
-        int hrs = totalSec / 3600;
-        int min = (totalSec % 3600) / 60;
-        int sec = totalSec % 60;
-
-        String t = String.format("%02d:%02d:%02d", hrs, min, sec);
-
-        ((TextView)findViewById(R.id.tvResultTitle)).setText(player + " Wins");
-        ((TextView)findViewById(R.id.tvResultMoves)).setText("Moves: " + moves);
-        ((TextView)findViewById(R.id.tvResultTime)).setText("Time: " + t);
-        ((TextView)findViewById(R.id.tvResultScore)).setText("Score: " + score);
-
-        resultOverlay.setVisibility(View.VISIBLE);
-
-        Animation fadeIn = AnimationUtils.loadAnimation(this, R.anim.fade_in);
-        resultBox.startAnimation(fadeIn);
-
-        btnOk.setOnClickListener(v -> {
-
-            Animation fadeOut = AnimationUtils.loadAnimation(this, R.anim.fade_out);
-
-            resultBox.startAnimation(fadeOut);
-
-            resultBox.postDelayed(() -> {
-                resultOverlay.setVisibility(View.GONE);
-            }, 400);
-        });
-    }
-
     //moves update method
     private void updateMoveUI() {
         tvMoves.setText("Moves: " + moveCount + " ");
@@ -486,7 +483,7 @@ public class GameActivity extends AppCompatActivity {
                     int minutes = (totalSeconds % 3600) / 60;
                     int seconds = totalSeconds % 60;
 
-                    tvTime.setText(String.format("%02d:%02d:%02d", hours, minutes, seconds));
+                    tvTime.setText(String.format(" Time: %02d:%02d:%02d", hours, minutes, seconds));
                 }
 
                 handler.postDelayed(this, 1000);
@@ -618,19 +615,22 @@ public class GameActivity extends AppCompatActivity {
         return Math.max(score, 1); // minimum 1
     }
 
-    private int applyDifficulty(int baseScore, String difficulty) {
+    private int applyDifficulty(int baseScore, int difficulty) {
 
         int multiplier = 1;
 
         switch (difficulty) {
-            case "MEDIUM":
+            case 1:
                 multiplier = 2;
+
                 break;
-            case "HARD":
+            case 2:
                 multiplier = 3;
                 break;
         }
-
+        Toast.makeText(this,
+                "difficulty " + difficulty + " multiplier "+  multiplier,
+                Toast.LENGTH_SHORT).show();
         return baseScore * multiplier;
     }
 
@@ -641,16 +641,6 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
-    //background music on/off method
-    void toggleMusic() {
-        if (isMusicOn) {
-            bgMusic.pause();
-        } else {
-            bgMusic.start();
-        }
-        isMusicOn = !isMusicOn;
-    }
-
     private boolean checkWin(int r, int c) {
         return boardView.checkWin(r, c);
     }
@@ -659,10 +649,6 @@ public class GameActivity extends AppCompatActivity {
     void resetGame() {
         boardView.resetBoard();
         moveHistory.clear();
-
-        //clear saved game on restart
-        prefs.edit().clear().apply();
-        fireworkView.stopFireworks();
 
         //undo
         moveCount = 0;
@@ -685,45 +671,6 @@ public class GameActivity extends AppCompatActivity {
         startTimerUI();
 
         statusText.setText("Player 1 Turn");
-        restartBtn.setVisibility(View.GONE);
         applyTheme();
-    }
-
-    //Save game method local
-    private void saveGame() {
-
-        SharedPreferences prefs = getSharedPreferences("game", MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-
-        editor.putInt("currentPlayer", currentPlayer);
-
-        // board save करो
-        int[][] board = boardView.getBoard();
-
-        for (int r = 0; r < 15; r++) {
-            for (int c = 0; c < 15; c++) {
-                editor.putInt("cell_" + r + "_" + c, board[r][c]);
-            }
-        }
-
-        editor.apply();
-    }
-
-    //Load local saved game method
-    private void loadGame() {
-
-        SharedPreferences prefs = getSharedPreferences("game", MODE_PRIVATE);
-
-        currentPlayer = prefs.getInt("currentPlayer", 1);
-
-        int[][] board = boardView.getBoard();
-
-        for (int r = 0; r < 15; r++) {
-            for (int c = 0; c < 15; c++) {
-                board[r][c] = prefs.getInt("cell_" + r + "_" + c, 0);
-            }
-        }
-
-        boardView.invalidate();
     }
 }

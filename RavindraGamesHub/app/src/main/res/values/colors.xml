@@ -10,4 +10,10 @@
     <!-- Button Background -->
     <color name="buttonBlue">#1565C0</color>
     <color name="yellow">#FFEB3B</color>
+    <color name="OrangeStart">#E65100</color>
+    <color name="OrangeEnd">#FFB74D</color>
+    <color name="OrangeBtn">#FB8C00</color>
+    <color name="BlueStart">#0D47A1</color>
+    <color name="BlueEnd">#42A5F5</color>
+    <color name="BlueBtn">#1976D2</color>
 </resources>

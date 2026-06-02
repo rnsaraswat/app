@@ -32,8 +32,8 @@ public class MainActivity extends AppCompatActivity {
 //        startBtn.setOnClickListener(v -> showGameDialog());
 
         // App खुलते ही popup दिखाओ
-        showGameDialog();
-
+//        showGameDialog();
+        startActivity(new Intent(this, GameActivity.class));
 //        // Mode Spinner Data
 //        String[] modes = {"Player vs Player", "Player vs AI"};
 //        ArrayAdapter<String> modeAdapter = new ArrayAdapter<>(

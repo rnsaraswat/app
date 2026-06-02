@@ -1,96 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
 
-<!--    status view-->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/headerText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tic Tac Toe"
+        android:textStyle="bold"
+        android:textSize="30sp"
+        android:layout_marginBottom="10dp"/>
+
     <TextView
         android:id="@+id/statusText"
-        android:text="Your Turn"
-        android:textSize="24sp"
-        android:layout_marginBottom="20dp"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:text="Player 1 Turn"
+        android:textSize="20sp"/>
 
-<!--    score view-->
     <TextView
         android:id="@+id/scoreText"
-        android:text="Player: 0  AI: 0"
-        android:textSize="18sp"
-        android:layout_marginBottom="10dp"
         android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Player 1 : 0    Player 2 : 0"
+        android:textSize="18sp"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="10dp"/>
+
+    <Spinner
+        android:id="@+id/modeSpinner"
+        android:layout_width="220dp"
         android:layout_height="wrap_content"/>
 
-<!--    fireworks view-->
-    <View
-        android:id="@+id/fireworksView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone"/>
-
-    <FrameLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-
-<!--        3x3=9 button grid-->
-        <GridLayout
-            android:id="@+id/grid"
-            android:rowCount="3"
-            android:columnCount="3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-
-            <!-- 9 Buttons -->
-            <Button android:id="@+id/b0" style="@style/btn"/>
-            <Button android:id="@+id/b1" style="@style/btn"/>
-            <Button android:id="@+id/b2" style="@style/btn"/>
-            <Button android:id="@+id/b3" style="@style/btn"/>
-            <Button android:id="@+id/b4" style="@style/btn"/>
-            <Button android:id="@+id/b5" style="@style/btn"/>
-            <Button android:id="@+id/b6" style="@style/btn"/>
-            <Button android:id="@+id/b7" style="@style/btn"/>
-            <Button android:id="@+id/b8" style="@style/btn"/>
-        </GridLayout>
-
-<!--        winline view-->
-        <View
-            android:id="@+id/winLine"
-            android:background="#FF0000"
-            android:visibility="gone"
-            android:layout_width="0dp"
-            android:layout_height="5dp"/>
-
-    </FrameLayout>
-
-<!--    level dropdown-->
     <Spinner
         android:id="@+id/levelSpinner"
-        android:layout_marginTop="20dp"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"/>
-
-<!--    restart button-->
-    <Button
-        android:id="@+id/restartBtn"
-        android:text="Restart"
-        android:layout_marginTop="10dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
-
-<!--    theme dropdown-->
-    <Spinner
-        android:id="@+id/themeSpinner"
-        android:layout_width="200dp"
+        android:layout_width="220dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"/>
+        android:layout_marginTop="8dp"/>
 
-<!--    background music button-->
-    <Button
-        android:id="@+id/musicBtn"
-        android:text="Music ON/OFF"
+    <GridLayout
+        android:id="@+id/gameBoard"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:rowCount="3"
+        android:columnCount="3"
+        android:layout_marginTop="20dp"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="20dp">
+
+        <Button
+            android:id="@+id/restartBtn"
+            android:layout_width="130dp"
+            android:layout_height="wrap_content"
+            android:text="Restart"/>
+
+        <Button
+            android:id="@+id/undoBtn"
+            android:layout_width="130dp"
+            android:layout_height="wrap_content"
+            android:text="Undo (3)"
+            android:layout_marginStart="10dp"/>
+
+    </LinearLayout>
 
 </LinearLayout>

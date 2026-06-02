@@ -1,87 +1,110 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginTop="50dp"
-    android:gravity="center"
-    android:orientation="vertical">
+    android:layout_height="match_parent"
+    android:padding="8dp">
 
-    <!--        status view-->
+    <!-- 🎯 Status -->
     <TextView
         android:id="@+id/statusText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
         android:text="Your Turn"
-        android:textSize="24sp" />
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Score -->
+    <!-- 🎯 Score -->
     <TextView
         android:id="@+id/scoreText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="10dp"
         android:text="Player: 0  AI: 0"
-        android:textSize="18sp" />
+        android:textSize="18sp"
+        android:layout_marginTop="6dp"
+        app:layout_constraintTop_toBottomOf="@id/statusText"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Board Container -->
+    <!-- 🎮 Mode Spinner -->
+    <Spinner
+        android:id="@+id/modeSpinner"
+        android:layout_width="220dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/scoreText"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- 🤖 Difficulty Spinner -->
+    <Spinner
+        android:id="@+id/difficultySpinner"
+        android:layout_width="220dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        app:layout_constraintTop_toBottomOf="@id/modeSpinner"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- 🎯 Board Container -->
     <FrameLayout
         android:id="@+id/boardContainer"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center">
+        android:layout_marginTop="10dp"
+        app:layout_constraintTop_toBottomOf="@id/difficultySpinner"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <!-- Game Board -->
         <GridLayout
             android:id="@+id/grid"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
             android:columnCount="7"
             android:rowCount="6" />
 
-        <!--         win Line View -->
+        <!-- Win Line -->
         <com.example.fourinarow.WinLineView
             android:id="@+id/winLine"
-            android:layout_width="wrap_content"
-            android:layout_height="373dp" />
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:clickable="false"
+            android:focusable="false" />
 
     </FrameLayout>
 
-    <!-- Difficulty Dropdown -->
-    <Spinner
-        android:id="@+id/difficultySpinner"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp" />
-
-    <!-- Restart Button -->
-    <Button
-        android:id="@+id/restartBtn"
+    <!-- 🔄 Bottom Buttons -->
+    <LinearLayout
+        android:id="@+id/buttonLayout"
         android:layout_width="wrap_content"
-        android:layout_height="52dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
         android:layout_marginTop="10dp"
-        android:text="Restart" />
+        app:layout_constraintTop_toBottomOf="@id/boardContainer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <!--    theme dropdown-->
-    <Spinner
-        android:id="@+id/themeSpinner"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp" />
+        <!-- Restart -->
+        <Button
+            android:id="@+id/restartBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Restart" />
 
-    <!--    background music button-->
-    <Button
-        android:id="@+id/musicBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Music ON/OFF" />
+        <!-- Undo -->
+        <Button
+            android:id="@+id/undoBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="Undo (3)" />
 
-    <!-- leaderboard button-->
-    <Button
-        android:id="@+id/leaderboardBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="🏆 Leaderboard" />
+    </LinearLayout>
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

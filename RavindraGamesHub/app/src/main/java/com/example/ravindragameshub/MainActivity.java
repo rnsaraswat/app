@@ -1,24 +1,21 @@
 package com.example.ravindragameshub;
 
-import android.animation.ValueAnimator;
+// ==========================================
+// MainActivity.java
+// main activity - list of games - starting activity for All Games
+// ==========================================
+
 import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import android.content.Intent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -26,11 +23,13 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.ravindragameshub.common.SoundManager;
 import com.example.ravindragameshub.common.ThemeManager;
+import com.example.ravindragameshub.connect4.Connect4Activity;
+import com.example.ravindragameshub.fiveinarow.FiveinarowGameActivity;
 import com.example.ravindragameshub.reversi.ReversiActivity;
+import com.example.ravindragameshub.tictactoe.TictactoeActivity;
 import com.google.android.material.card.MaterialCardView;
 
 public class MainActivity extends AppCompatActivity {
@@ -44,13 +43,7 @@ public class MainActivity extends AppCompatActivity {
     //theme variables
     Spinner themeSpinner;
     LinearLayout rootLayout;
-    String[] themes = {
-            "Light",
-            "Dark",
-            "Blue",
-            "Orange"
-    };
-//    String[] themes = {"🎨 Light","🌙 Dark","🔵 Blue","🟠 Orange"};
+    String[] themes = {"🎨 Light","🌙 Dark","🔵 Blue","🟠 Orange"};
     LinearLayout headerLayout;
     private boolean isSpinnerInitialized = false;
     TextView headerTitle;
@@ -77,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
                 "Tic Tac Toe",
                 "Classic X vs O Game",
                 R.drawable.ic_tictactoe,
-                TicTacToeActivity.class
+                TictactoeActivity.class
         );
 
         setupGameCard(
@@ -101,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
                 "Five In A Row",
                 "It's not just luck, its strategy",
                 R.drawable.ic_tictactoe,
-                FiveInARowActivity.class
+                FiveinarowGameActivity.class
         );
 
         btnShare = findViewById(R.id.btnShare);
@@ -134,8 +127,7 @@ public class MainActivity extends AppCompatActivity {
         // Animation load
         Animation fadeScale = AnimationUtils.loadAnimation(this, R.anim.fade_scale);
 
-//        prefs = getSharedPreferences("user_data", MODE_PRIVATE);
-
+        //header
         TextView headerTitle = findViewById(R.id.headerTitle);
         headerTitle.animate().translationY(0).alpha(1).setDuration(800);
         // Load saved name
@@ -192,6 +184,8 @@ public class MainActivity extends AppCompatActivity {
                             int position,
                             long id) {
 
+                        SoundManager.playClick();
+
                         int selectedTheme = ThemeManager.THEME_LIGHT;
 
                         switch (position) {
@@ -235,14 +229,18 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
+        //button share
         btnShare.setOnClickListener(v -> {
+            SoundManager.playClick();
             Intent intent = new Intent(Intent.ACTION_SEND);
             intent.setType("text/plain");
             intent.putExtra(Intent.EXTRA_TEXT, "Download Ravindra Games Hub!");
             startActivity(Intent.createChooser(intent, "Share via"));
         });
 
+        //button signin
         btnSignIn.setOnClickListener(v -> {
+            SoundManager.playClick();
             //change name
             showNameDialog();
         });
@@ -363,12 +361,14 @@ public class MainActivity extends AppCompatActivity {
         // Click
         cardView.setOnClickListener(v -> {
 
+            SoundManager.playTap();
             // Click Animation
             v.animate()
                     .scaleX(0.95f)
                     .scaleY(0.95f)
                     .setDuration(100)
                     .withEndAction(() -> {
+
 
                         v.animate()
                                 .scaleX(1f)

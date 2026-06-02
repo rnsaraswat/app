@@ -1,155 +1,172 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
     android:orientation="vertical"
-    android:clickable="false"
-    android:focusable="false">
+    android:background="@drawable/bg_neon"
+    android:gravity="center"
+    android:padding="10dp">
 
-    <!-- 🔥 COMMON HEADER -->
-    <include layout="@layout/common_header" />
-
-    <!-- GAME AREA -->
-    <LinearLayout
-        android:id="@+id/gameContainer"
+    <!-- TOP EMPTY SPACE -->
+    <Space
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:layout_height="20dp"/>
 
-        <!--    status view-->
-        <TextView
-            android:id="@+id/txtTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            android:text="TIC TAC TOE"
-            android:textAlignment="center"
-            android:textSize="24sp" />
+    <!-- Common header -->
+    <include
+        layout="@layout/common_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
 
-        <!--  Home Button -->
+    <!-- TOP BAR -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp">
+
         <Button
             android:id="@+id/btnHome"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="🏠 Home" />
-
-        <!--    status view-->
-        <TextView
-            android:id="@+id/statusText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            android:text="Your Turn"
-            android:textSize="24sp" />
-
-        <!--    score view-->
-        <TextView
-            android:id="@+id/scoreText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:text="Player: 0  AI: 0"
-            android:textAlignment="center"
-            android:textSize="18sp" />
-
-        <!--    fireworks view-->
-<!--        <View-->
-<!--            android:id="@+id/fireworksView"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="match_parent"-->
-<!--            android:visibility="gone" />-->
-
-        <FrameLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAlignment="center">
+            android:text="Home" />
 
-            <!--        3x3=9 button grid-->
-            <GridLayout
-                android:id="@+id/grid"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:columnCount="3"
-                android:rowCount="3">
+        <TextView
+            android:id="@+id/gameTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:tag="gameHeader"
+            android:text="Tic Tac Toe"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp"
+            android:textStyle="bold" />
 
-                <!-- 9 Buttons -->
-                <Button
-                    android:id="@+id/b0"
-                    style="@style/btn" />
+        <Button
+            android:id="@+id/btnShare"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Share" />
+    </LinearLayout>
 
-                <Button
-                    android:id="@+id/b1"
-                    style="@style/btn" />
+    <!-- STATUS -->
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:tag="status"
+        android:text="Player 1 Turn"
+        android:textAlignment="center"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp" />
 
-                <Button
-                    android:id="@+id/b2"
-                    style="@style/btn" />
+    <!-- SCORE -->
+    <TextView
+        android:id="@+id/scoreText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:tag="score"
+        android:text="Player 1: 0     Player 2 : 0"
+        android:textAlignment="center"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp" />
 
-                <Button
-                    android:id="@+id/b3"
-                    style="@style/btn" />
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:orientation="horizontal">
+        <!-- MODE -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="Select Mode"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
-                <Button
-                    android:id="@+id/b4"
-                    style="@style/btn" />
+        <Spinner
+            android:id="@+id/modeSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="5dp" />
+    </LinearLayout>
+    <!-- DIFFICULTY ROW -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:orientation="horizontal">
+        <!-- difficulty -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="Select Difficulty"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
-                <Button
-                    android:id="@+id/b5"
-                    style="@style/btn" />
-
-                <Button
-                    android:id="@+id/b6"
-                    style="@style/btn" />
-
-                <Button
-                    android:id="@+id/b7"
-                    style="@style/btn" />
-
-                <Button
-                    android:id="@+id/b8"
-                    style="@style/btn" />
-            </GridLayout>
-
-            <!--        winline view-->
-            <View
-                android:id="@+id/winLine"
-                android:layout_width="0dp"
-                android:layout_height="5dp"
-                android:background="#FF0000"
-                android:visibility="gone" />
-
-        </FrameLayout>
-
-        <!--    level dropdown-->
         <Spinner
             android:id="@+id/levelSpinner"
-            android:layout_width="200dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp" />
+            android:layout_marginLeft="10dp"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="5dp" />
+    </LinearLayout>
 
-        <!--    restart button-->
+    <FrameLayout
+        android:id="@+id/boardContainer"
+        android:layout_width="260dp"
+        android:layout_height="260dp"
+        android:background="@drawable/glass_bg"
+        android:padding="10dp">
+
+        <GridLayout
+            android:id="@+id/gameBoard"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:columnCount="3"
+            android:rowCount="3" />
+
+    </FrameLayout>
+
+
+
+    <!-- GAME BUTTONS -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
         <Button
             android:id="@+id/restartBtn"
-            android:layout_width="match_parent"
+            android:layout_width="140dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="Restart" />
+            android:text="Restart"/>
 
-        <!--    theme dropdown-->
-        <Spinner
-            android:id="@+id/themeSpinner"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp" />
-
-        <!--    background music button-->
         <Button
-            android:id="@+id/musicBtn"
-            android:layout_width="match_parent"
+            android:id="@+id/undoBtn"
+            android:layout_width="140dp"
             android:layout_height="wrap_content"
-            android:text="Music ON/OFF" />
+            android:layout_marginStart="10dp"
+            android:text="Undo(3)"/>
     </LinearLayout>
+
+    <!-- BOTTOM EMPTY SPACE -->
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="20dp"/>
+
 </LinearLayout>

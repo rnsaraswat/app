@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--    // ==========================================-->
+<!--    // common_button_bg.xml -->
+<!--    // Common button background for All Games-->
+<!--    // ==========================================-->
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
 
     <solid android:color="@color/buttonBlue"/>

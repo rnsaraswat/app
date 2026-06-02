@@ -1,0 +1,716 @@
+package com.example.ravindragameshub.fiveinarow;
+
+import android.app.Dialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+import android.media.MediaPlayer;
+import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
+import android.view.View;
+import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
+import com.example.ravindragameshub.common.ThemeManager;
+import com.example.ravindragameshub.common.SoundManager;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.ravindragameshub.R;
+
+import java.util.Stack;
+
+public class FiveinarowGameActivity extends AppCompatActivity {
+
+//    //Multiple themes gradient
+//    //Theme class
+//    static class Theme {
+//        int bgColorStart;
+//        int bgColorEnd;
+//        int btnColor;
+//        int textColor;
+//        boolean isGradient;
+//
+//
+//
+//        Theme(int bgStart, int bgEnd, int btn, int text, boolean gradient) {
+//            bgColorStart = bgStart;
+//            bgColorEnd = bgEnd;
+//            btnColor = btn;
+//            textColor = text;
+//            isGradient = gradient;
+//        }
+//    }
+//
+//    //define Themes
+//    Theme lightTheme = new Theme(Color.WHITE, Color.WHITE, Color.LTGRAY, Color.BLACK, false);
+//    Theme darkTheme = new Theme(Color.BLACK, Color.BLACK, Color.DKGRAY, Color.WHITE, false);
+//    //Blue Gradient
+//    Theme blueTheme = new Theme(
+//            Color.parseColor("#0D47A1"),
+//            Color.parseColor("#42A5F5"),
+//            Color.parseColor("#1976D2"),
+//            Color.WHITE,
+//            true
+//    );
+//    //Orange Gradient
+//    Theme orangeTheme = new Theme(
+//            Color.parseColor("#E65100"),
+//            Color.parseColor("#FFB74D"),
+//            Color.parseColor("#FB8C00"),
+//            Color.BLACK,
+//            true
+//    );
+//    // Theme Array
+//    // 🔥 spinner data
+//
+//    Theme[] themes = {lightTheme, darkTheme, blueTheme, orangeTheme};
+//    // theme names display in dropdown
+//    String[] themeNames = {"Theme Light", "Theme Dark", "Theme Blue", "Theme Orange"};
+//    //set Current theme index
+//    int currentThemeIndex = 0;
+
+    FiveinarowBoardView boardView;
+    int mode, difficulty;
+    boolean gameOver = false;
+    boolean isGamePaused = false;
+    TextView statusText;
+    Button restartBtn;
+    //undo variales
+    Button undoBtn;
+    Stack<int[]> moveHistory = new Stack<>();
+    int undoLimit;
+    int undoLeft;
+
+    int currentPlayer = 1; // 1 = Player1, 2 = Player2/AI
+    FiveinarowAIPlayer ai;
+
+    //timer variables
+//    GameTimer gameTimer;
+//    Handler handler;
+    TextView tvTime;
+    Button btnPause;
+
+    GameTimer gameTimer;
+    Handler handler = new Handler();
+    Runnable timerRunnable;
+
+    //    boolean isGamePaused = false;
+    boolean isGameOver = false;
+
+    //moves
+    int moveCount = 0;
+    TextView tvMoves;
+
+    //sound variables
+    MediaPlayer tapSound, winSound, loseSound, drawSound;
+    MediaPlayer bgMusic;
+    //variable to background music on off
+//    boolean isMusicOn = false;
+    SharedPreferences prefs;
+    FireworkView fireworkView;
+
+    //score display
+//    FrameLayout resultOverlay;
+//    TextView tvResultTitle, tvResultMoves, tvResultTime, tvResultScore;
+//    LinearLayout resultBox;
+    //    Button btnOk;
+    LinearLayout rootLayout;
+
+
+    Spinner modeSpinner, difficultySpinner;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_fiveinarow);
+
+        //apply theme
+        rootLayout = findViewById(R.id.rootLayout);
+
+        // Theme Apply
+        ThemeManager.applyTheme(
+                this,
+                rootLayout
+        );
+
+        //variable to save local device
+        prefs = getSharedPreferences("settings", MODE_PRIVATE);
+
+        statusText = findViewById(R.id.statusText);
+        restartBtn = findViewById(R.id.restartBtn);
+        boardView = findViewById(R.id.boardView);
+        fireworkView = findViewById(R.id.fireworkView);
+        tvTime = findViewById(R.id.tvTime);
+        btnPause = findViewById(R.id.btnPause);
+        tvMoves = findViewById(R.id.tvMoves);
+//        themeSpinner = findViewById(R.id.themeSpinner);
+        modeSpinner = findViewById(R.id.modeSpinner);
+        difficultySpinner = findViewById(R.id.difficultySpinner);
+
+        Button btnHome = findViewById(R.id.btnHome);
+        Button btnShare = findViewById(R.id.btnShare);
+        btnHome.setOnClickListener(v -> {
+            SoundManager.playClick();
+            finish();
+        });
+
+        btnShare.setOnClickListener(v -> {
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("text/plain");
+            shareIntent.putExtra(Intent.EXTRA_TEXT,"Play Ravindra Games Hub!"
+            );
+            SoundManager.playClick();
+            startActivity(
+                    Intent.createChooser(shareIntent,"Share App")
+            );
+        });
+
+        String[] modes = {
+                "Player vs Player",
+                "Player vs AI"
+        };
+
+        String[] levels = {
+                "Easy",
+                "Medium",
+                "Hard"
+        };
+
+        ArrayAdapter<String> modeAdapter =
+                new ArrayAdapter<>(
+                        this,
+                        android.R.layout.simple_spinner_dropdown_item,
+                        modes
+                );
+
+        ArrayAdapter<String> difficultyAdapter =
+                new ArrayAdapter<>(
+                        this,
+                        android.R.layout.simple_spinner_dropdown_item,
+                        levels
+                );
+
+        modeSpinner.setAdapter(modeAdapter);
+        difficultySpinner.setAdapter(difficultyAdapter);
+
+        //initialize sound variables
+        tapSound = MediaPlayer.create(this, R.raw.tap);
+        winSound = MediaPlayer.create(this, R.raw.win);
+        loseSound = MediaPlayer.create(this, R.raw.lose);
+        drawSound = MediaPlayer.create(this, R.raw.draw);
+
+        //undo
+        switch (difficulty) {
+            case 0: undoLimit = 5; break; // Easy
+            case 1: undoLimit = 4; break; // Medium
+            case 2: undoLimit = 3; break; // Hard
+        }
+        undoLeft = undoLimit;
+        undoBtn = findViewById(R.id.undoBtn);
+        updateUndoText();
+
+        if (boardView == null) {
+            Toast.makeText(this, "BoardView NULL!", Toast.LENGTH_LONG).show();
+        }
+
+        modeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                mode = position;
+                SoundManager.playClick();
+//                restart game
+                resetGame();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+
+        difficultySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+            @Override
+            public void onItemSelected(AdapterView<?> parent,
+                                       View view,
+                                       int position,
+                                       long id) {
+
+                SoundManager.playClick();
+                // 🔥 IMPORTANT
+                difficulty = position;
+
+                // 🔥 NEW AI
+                ai = new FiveinarowAIPlayer(difficulty);
+
+                resetGame();
+
+                // undo limits
+                switch (difficulty) {
+
+                    case 0:
+                        undoLimit = 5;
+                        break;
+
+                    case 1:
+                        undoLimit = 4;
+                        break;
+
+                    case 2:
+                        undoLimit = 3;
+                        break;
+                }
+
+                undoLeft = undoLimit;
+                updateUndoText();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+
+        boardView.setOnCellTouchListener((row, col) -> {
+
+            if (gameOver) return;
+            if (boardView.placeMove(row, col, currentPlayer)) {
+                //history for undo
+                moveHistory.push(new int[]{row, col});
+                //moves
+                moveCount++;
+                updateMoveUI();
+                //auto save after each move
+//                saveGame();
+//                playSound(tapSound);
+                SoundManager.playTap();
+                if (checkWin(row, col)) {
+                    if (boardView.checkWin(row, col)) {
+                        gameOver = true;
+                        isGameOver = true;
+                        handler.removeCallbacks(timerRunnable); // stop UI
+                        gameTimer.pause(); // freeze time
+                        //score
+                        long finalTime = gameTimer.getElapsedTime();
+                        int baseScore = calculateEfficiencyScore(moveCount, finalTime);
+                        int finalScore = applyDifficulty(baseScore, difficulty);
+                        // score add Bonus
+                        finalScore = applyBonus(finalScore, moveCount, finalTime);
+
+//                        playSound(winSound);
+                        SoundManager.playWin();
+                        fireworkView.startFireworksWithDelay();
+                        //display winning time in status text
+                        int sec = (int)(finalTime / 1000);
+                        int min = sec / 60;
+                        int hrs = sec / 3600;
+                        sec = sec % 60;
+                        String result = String.format("%02d:%02d:%02d", hrs, min, sec);
+                        statusText.setText("Player " + currentPlayer + " Wins in " + result +" Score:" + finalScore);
+                        return;
+                    }
+                    return;
+                }
+
+                if (boardView.isBoardFull()) {
+                    gameOver = true;
+                    isGameOver = true;
+                    handler.removeCallbacks(timerRunnable); // stop UI
+                    gameTimer.pause(); // freeze time
+                    statusText.setText("Draw!   Moves: " + moveCount);
+//                    playSound(drawSound);
+                    SoundManager.playDraw();
+                    return;
+                }
+
+                currentPlayer = 3 - currentPlayer;
+
+                // AI move
+                if (mode == 1 && currentPlayer == 2) {
+                    int[] move = ai.getMove(boardView.getBoard());
+                    boardView.placeMove(move[0], move[1], 2);
+                    //history for undo
+                    moveHistory.push(new int[]{move[0], move[1]});
+                    moveCount++;
+                    SoundManager.playTap();
+
+                    // 👉 AI move के बाद भी win check करो
+                    if (boardView.checkWin(move[0], move[1])) {
+                        gameOver = true;
+                        isGameOver = true;
+                        handler.removeCallbacks(timerRunnable); // stop UI
+                        gameTimer.pause(); // freeze time
+
+//                        playSound(loseSound);
+                        SoundManager.playLose();
+                        statusText.setText("AI Wins!");
+                        return;
+                    }
+
+                    currentPlayer = 3 - currentPlayer;
+                    statusText.setText("Player " + currentPlayer + " Turn");
+
+                }
+            }
+        });
+
+        //undo button listener
+        undoBtn.setOnClickListener(v -> {
+
+            if (undoLeft <= 0 || moveHistory.isEmpty() || gameOver) return;
+
+            SoundManager.playClick();
+            // 👉 AI mode में 2 moves हटाओ
+            int removeCount = (mode == 1) ? 2 : 1;
+
+            for (int i = 0; i < removeCount; i++) {
+                if (!moveHistory.isEmpty()) {
+                    int[] last = moveHistory.pop();
+                    boardView.removeMove(last[0], last[1]);
+                }
+            }
+
+            undoLeft--;
+            updateUndoText();
+
+            if (moveCount > 0) {
+                moveCount--;
+                updateMoveUI();
+            }
+
+            gameOver = false;
+            statusText.setText("Player " + currentPlayer + " Turn");
+        });
+
+        // theme button click
+        //Theme load
+//        currentThemeIndex = prefs.getInt("theme", 0);
+//        //theme apply
+//        applyTheme();
+//
+//        //theme Spinner setup
+//        Spinner themeSpinner = findViewById(R.id.themeSpinner);
+//        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+//                this,
+//                android.R.layout.simple_spinner_dropdown_item,
+//                themeNames
+//        );
+
+
+//        themeSpinner.setAdapter(adapter);
+        //select saved theme
+//        themeSpinner.setSelection(currentThemeIndex);
+//        //theme listener
+//        themeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+//            @Override
+//            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+//                currentThemeIndex = position;
+//
+//                applyTheme();
+//                // save theme safe call
+//                if (prefs != null) {
+//                    saveTheme();
+//                }
+//            }
+//
+//            @Override
+//            public void onNothingSelected(AdapterView<?> parent) {}
+//        });
+        //Restart button Listeners
+
+        restartBtn.setOnClickListener(v -> resetGame());
+
+        isGameOver = false;
+
+        startTimerUI();
+
+        //define timer
+        tvTime = findViewById(R.id.tvTime);
+
+        //Timer Runnable method old
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                long millis = gameTimer.getElapsedTime();
+
+                int totalSeconds = (int) (millis / 1000);
+
+                int hours = totalSeconds / 3600;
+                int minutes = (totalSeconds % 3600) / 60;
+                int seconds = totalSeconds % 60;
+
+                // 🔥 HH:MM:SS format
+                tvTime.setText(String.format(" Time: %02d:%02d:%02d", hours, minutes, seconds));
+
+                handler.postDelayed(this, 1000);
+            }
+        });
+
+        //pause button listener
+        btnPause.setOnClickListener(v -> {
+            isGamePaused = true;
+            SoundManager.playClick();
+            gameTimer.pause();
+            showPauseDialog();
+        });
+
+        gameTimer = new GameTimer();
+        gameTimer.start();
+    }
+
+    //score bonus appy method
+    private int applyBonus(int score, int moves, long timeMillis) {
+        int timeSec = (int)(timeMillis / 1000);
+        //Fast bonus (less time)
+        if (timeSec < 60) score += 50;
+
+        //Smart play bonus (less move)
+        if (moves < 20) score += 50;
+
+        //Perfect game bonus (less time & bonus)
+        if (moves < 15 && timeSec < 40) {
+            score += 100;
+        }
+        return score;
+    }
+
+    //save best score
+    private void saveBestScore(int finalScore) {
+
+        SharedPreferences prefs = getSharedPreferences("GameData", MODE_PRIVATE);
+
+        int best = prefs.getInt("bestScore", 0);
+
+        if (finalScore > best) {
+            prefs.edit().putInt("bestScore", finalScore).apply();
+        }
+    }
+
+    //moves update method
+    private void updateMoveUI() {
+        tvMoves.setText("Moves: " + moveCount + " ");
+    }
+
+    //Timer Runnable method
+    private void startTimerUI() {
+
+        timerRunnable = new Runnable() {
+            @Override
+            public void run() {
+
+                if (!isGamePaused && !isGameOver) {
+
+                    long millis = gameTimer.getElapsedTime();
+
+                    int totalSeconds = (int) (millis / 1000);
+                    int hours = totalSeconds / 3600;
+                    int minutes = (totalSeconds % 3600) / 60;
+                    int seconds = totalSeconds % 60;
+
+                    tvTime.setText(String.format(" Time: %02d:%02d:%02d", hours, minutes, seconds));
+                }
+
+                handler.postDelayed(this, 1000);
+            }
+        };
+
+        handler.post(timerRunnable);
+    }
+
+    //stop timer method
+    private void stopTimer() {
+        if (handler != null) {
+            handler.removeCallbacksAndMessages(null);
+        }
+    }
+
+    // 🔥 Timer stop जब app background में जाए
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (gameTimer != null && !isGameOver) {
+            gameTimer.pause();
+        }
+
+        if (handler != null && timerRunnable != null) {
+            handler.removeCallbacks(timerRunnable);
+        }
+    }
+
+    // timer Resume when app in forground
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (gameTimer != null && !isGameOver) {
+            gameTimer.resume();
+            startTimerUI();   // UI भी restart करो
+        }
+
+        // theme update on Screen reopen
+        ThemeManager.applyTheme(
+                this,
+                rootLayout
+        );
+    }
+
+    //timer stop when game (activity) closed
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // 🔥 Timer stop
+        if (handler != null) {
+            handler.removeCallbacksAndMessages(null);
+        }
+    }
+
+    //pause dialog box
+    private void showPauseDialog() {
+
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialog_pause);
+
+        dialog.setCancelable(false);
+
+        // cover 95% screen size
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams();
+        params.copyFrom(dialog.getWindow().getAttributes());
+        params.width = (int)(getResources().getDisplayMetrics().widthPixels * 0.95);
+        params.height = (int)(getResources().getDisplayMetrics().heightPixels * 0.95);
+
+        dialog.getWindow().setAttributes(params);
+
+        Button btnResume = dialog.findViewById(R.id.btnResume);
+
+        btnResume.setOnClickListener(v -> {
+
+//            Log.d("DEBUG", "Resume clicked");  // 👈 logcat में देखो
+            SoundManager.playClick();
+            // 🔥 Resume logic
+            isGamePaused = false;
+
+            if (gameTimer != null) {
+                gameTimer.resume();
+            }
+
+            startTimerUI();   // UI timer फिर start
+
+            dialog.dismiss(); // popup बंद
+        });
+
+        //display popup
+        dialog.show();
+    }
+
+    //save Multiple theme local device
+//    void saveTheme() {
+//        prefs.edit().putInt("theme", currentThemeIndex).apply();
+//    }
+
+    //Multiple Theme apply
+//    void applyTheme() {
+//        Theme t = themes[currentThemeIndex];
+//        View root = getWindow().getDecorView();
+//
+//        // change Background color
+//        if (t.isGradient) {
+//            GradientDrawable gradient = new GradientDrawable(
+//                    GradientDrawable.Orientation.TOP_BOTTOM,
+//                    new int[]{t.bgColorStart, t.bgColorEnd}
+//            );
+//            root.setBackground(gradient);
+//        } else {
+//            root.setBackgroundColor(t.bgColorStart);
+//        }
+//
+//        // change Text colors
+//        statusText.setTextColor(t.textColor);
+////        scoreText.setTextColor(t.textColor);
+//    }
+    //undo method
+    private void updateUndoText() {
+        undoBtn.setText("Undo (" + undoLeft + ")");
+    }
+
+    //Efficiency Score (Moves + Time)
+    private int calculateEfficiencyScore(int moves, long timeMillis) {
+
+        int timeSec = (int) (timeMillis / 1000);
+
+        if (moves == 0 || timeSec == 0) return 0;
+
+        int score = 10000 / (moves * timeSec);
+
+        return Math.max(score, 1); // minimum 1
+    }
+
+    private int applyDifficulty(int baseScore, int difficulty) {
+
+        int multiplier = 1;
+
+        switch (difficulty) {
+            case 1:
+                multiplier = 2;
+
+                break;
+            case 2:
+                multiplier = 3;
+                break;
+        }
+        return baseScore * multiplier;
+    }
+
+    //play sound method
+//    void playSound(MediaPlayer mp) {
+//        if (mp != null) {
+//            mp.start();
+//        }
+//    }
+
+    private boolean checkWin(int r, int c) {
+        return boardView.checkWin(r, c);
+    }
+
+    //Restart method
+    void resetGame() {
+        SoundManager.playClick();
+        boardView.resetBoard();
+        moveHistory.clear();
+
+        //undo
+        moveCount = 0;
+        updateMoveUI();
+
+        undoLeft = undoLimit;
+        updateUndoText();
+        gameOver = false;
+        currentPlayer = 1;
+
+        //start timer
+        handler.removeCallbacks(timerRunnable);
+
+        gameTimer = new GameTimer();
+        gameTimer.start();
+
+        isGamePaused = false;
+        isGameOver = false;
+
+        startTimerUI();
+
+        statusText.setText("Player 1 Turn");
+//        applyTheme();
+    }
+}

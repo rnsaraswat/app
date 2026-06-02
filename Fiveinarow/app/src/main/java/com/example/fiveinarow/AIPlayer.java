@@ -1,5 +1,8 @@
 package com.example.fiveinarow;
 
+import android.util.Log;
+import android.widget.Toast;
+
 import java.util.*;
 
 //class AI Player
@@ -18,6 +21,8 @@ public class AIPlayer {
     // 🎯 MAIN METHOD
     public int[] getMove(int[][] board) {
 
+//        difficulty = 2;
+        Log.d("AI", "Difficulty = " + difficulty);
         //easy
         if (difficulty == 0) return randomMove(board);
         //medium

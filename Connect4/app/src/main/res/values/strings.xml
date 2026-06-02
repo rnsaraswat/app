@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Connect 4</string>
+    <string name="restart">Restart</string>
+<!--    <string name="undo_3">Undo (3)</string>-->
+<!--    <string name="player_1_0_player_2_0">Player 1 : 0 Player 2 : 0</string>-->
+<!--    <string name="player_1_turn">Player 1 Turn</string>-->
+<!--    <string name="connect_4">Connect 4</string>-->
+</resources>

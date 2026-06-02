@@ -1,6 +1,5 @@
 package com.example.ravindragameshub.common;
 
-
 // ==========================================
 // ThemeManager.java
 // Common Theme System for All Games
@@ -238,147 +237,100 @@ public class ThemeManager {
 
             switch(tag)
             {
-                // ---------- HEADER ----------
+                // HEADER text Color
                 case "header":
-
                     switch(currentTheme)
                     {
                         case THEME_LIGHT:
-                            tv.setTextColor(
-                                    Color.BLACK);
+                            tv.setTextColor(Color.BLACK);
                             break;
-
                         case THEME_DARK:
-                            tv.setTextColor(
-                                    Color.WHITE);
+                            tv.setTextColor(Color.WHITE);
                             break;
-
                         case THEME_BLUE:
-                            tv.setTextColor(
-                                    Color.YELLOW);
+                            tv.setTextColor(Color.YELLOW);
                             break;
-
                         case THEME_ORANGE:
-                            tv.setTextColor(
-                                    Color.YELLOW);
+                            tv.setTextColor(Color.YELLOW);
                             break;
                     }
-
-//                    tv.setTextSize(28);
-
-                    tv.setTypeface(
-                            null,
-                            Typeface.BOLD);
-
+                    tv.setTypeface(null, Typeface.BOLD);
                     break;
-
-                // ---------- SUBHEADER ----------
+                // SUBHEADER text color
                 case "subheader":
-
                     switch(currentTheme)
                     {
                         case THEME_LIGHT:
-                            tv.setTextColor(
-                                    Color.DKGRAY);
+                            tv.setTextColor(Color.BLACK);
                             break;
-
                         case THEME_DARK:
-                            tv.setTextColor(
-                                    Color.LTGRAY);
+                            tv.setTextColor(Color.WHITE);
                             break;
-
                         case THEME_BLUE:
                         case THEME_ORANGE:
-                            tv.setTextColor(
-                                    Color.WHITE);
+                            tv.setTextColor(Color.WHITE);
                             break;
                     }
-
                     break;
 
-                // ---------- WELCOME ----------
+                // WELCOME text color
                 case "welcome":
-
                     switch(currentTheme)
                     {
                         case THEME_LIGHT:
-                            tv.setTextColor(
-                                    Color.BLUE);
+                            tv.setTextColor(Color.BLUE);
                             break;
-
                         case THEME_DARK:
-                            tv.setTextColor(
-                                    Color.CYAN);
+                            tv.setTextColor(Color.CYAN);
                             break;
-
                         case THEME_BLUE:
-                            tv.setTextColor(
-                                    Color.YELLOW);
+                            tv.setTextColor(Color.YELLOW);
                             break;
-
                         case THEME_ORANGE:
-                            tv.setTextColor(
-                                    Color.WHITE);
+                            tv.setTextColor(Color.WHITE);
                             break;
                     }
-
                     break;
 
-                // ---------- PLAYER TURN ----------
+                // PLAYER TURN (Ststus) text color
                 case "turn":
 
                     switch(currentTheme)
                     {
                         case THEME_LIGHT:
-                            tv.setTextColor(
-                                    Color.RED);
+                            tv.setTextColor(Color.RED);
                             break;
-
                         case THEME_DARK:
-                            tv.setTextColor(
-                                    Color.GREEN);
+                            tv.setTextColor(Color.GREEN);
                             break;
-
                         case THEME_BLUE:
                         case THEME_ORANGE:
-                            tv.setTextColor(
-                                    Color.WHITE);
+                            tv.setTextColor(Color.WHITE);
                             break;
                     }
 
-                    tv.setTypeface(
-                            null,
-                            Typeface.BOLD);
-
+                    tv.setTypeface(null,Typeface.BOLD);
                     break;
 
-                // ---------- SCORE ----------
+                // SCORE text color
                 case "score":
-
                     switch(currentTheme)
                     {
                         case THEME_LIGHT:
-                            tv.setTextColor(
-                                    Color.MAGENTA);
+                            tv.setTextColor(Color.MAGENTA);
                             break;
-
                         case THEME_DARK:
-                            tv.setTextColor(
-                                    Color.YELLOW);
+                            tv.setTextColor(Color.YELLOW);
                             break;
-
                         case THEME_BLUE:
                         case THEME_ORANGE:
-                            tv.setTextColor(
-                                    Color.WHITE);
+                            tv.setTextColor(Color.WHITE);
                             break;
                     }
-
                     break;
 
                 // ---------- DEFAULT ----------
                 default:
-
                     tv.setTextColor(textColor);
             }
         }

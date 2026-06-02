@@ -730,7 +730,7 @@ public class ReversiGameView extends View {
 
     //save game state
     void saveState(){
-        SoundManager.tapClick();
+        SoundManager.playTap();
         history.add(new ReversiGameState(board,blackTurn));
     }
 

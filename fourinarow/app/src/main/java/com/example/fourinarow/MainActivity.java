@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Stack;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -110,8 +111,18 @@ public class MainActivity extends AppCompatActivity {
     GridLayout gridLayout;
     ImageView[][] cells = new ImageView[ROWS][COLS];
     //deop down for difficulty level EASY / MEDIUM / HARD
-    Spinner spinner;
+    Spinner modeSpinner, difficultySpinner;
     String difficulty = "MEDIUM";
+
+    //pvp - pvc
+    boolean isPvP = false;
+    boolean playerTurn = true;
+
+    //undo
+    Button undoBtn;
+    Stack<int[][]> boardHistory = new Stack<>();
+    Stack<Boolean> playerTurnHistory = new Stack<>();
+    int undoLimit = 3;
 
     DatabaseReference dbRef;
     //sound variables
@@ -126,36 +137,24 @@ public class MainActivity extends AppCompatActivity {
         // Activit layout Sabse pehle
         setContentView(R.layout.activity_main);
 
-        //variable to save local device
-        prefs = getSharedPreferences("settings", MODE_PRIVATE);
-        // ye code firbase main connection or data create and save test karne ke liyte hai
-        //DatabaseReference dbRef;
-        //dbRef = FirebaseDatabase.getInstance().getReference("leaderboard");
-        //dbRef = FirebaseDatabase
-        //        .getInstance("https://fourinarow-31ccf-default-rtdb.asia-southeast1.firebasedatabase.app/")
-        //        .getReference("leaderboard");
-        //Toast.makeText(this, "Firebase Connected", Toast.LENGTH_SHORT).show();
-        //testSave();
-
-        //leaderboard pahale se dikhane ke liye
-        //startActivity(new Intent(this, LeaderboardActivity.class));
-
         //Views/button sabhi ko ID se connect kare (Initialize)
         gridLayout = findViewById(R.id.grid);
         scoreText = findViewById(R.id.scoreText);
         boardContainer = findViewById(R.id.boardContainer);
+        undoBtn = findViewById(R.id.undoBtn);
         //winLineView   = findViewById(R.id.winLine);
         winLine = findViewById(R.id.winLine);
         statusText = findViewById(R.id.statusText);
-        spinner = findViewById(R.id.difficultySpinner);
+        difficultySpinner = findViewById(R.id.difficultySpinner);
+        modeSpinner = findViewById(R.id.modeSpinner);
         Button restartBtn = findViewById(R.id.restartBtn);
-        Button leaderboardBtn = findViewById(R.id.leaderboardBtn);
+//        Button leaderboardBtn = findViewById(R.id.leaderboardBtn);
 
         //background music
         bgMusic = MediaPlayer.create(this, R.raw.bg_music);
         bgMusic.setLooping(true);
         //back ground music button listener
-        findViewById(R.id.musicBtn).setOnClickListener(v -> toggleMusic());
+//        findViewById(R.id.musicBtn).setOnClickListener(v -> toggleMusic());
         //sound variables
         tapSound = MediaPlayer.create(this, R.raw.tap);
         winSound = MediaPlayer.create(this, R.raw.win);
@@ -165,11 +164,21 @@ public class MainActivity extends AppCompatActivity {
 
         //drop down menu difficulty
         String[] levels = {"Level EASY", "Level MEDIUM", "Level HARD"};
-        spinner.setAdapter(new ArrayAdapter<>(this,
+        difficultySpinner.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item, levels));
         //ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
         //      android.R.layout.simple_spinner_dropdown_item, levels);
         //spinner.setAdapter(adapter);
+        ArrayAdapter<CharSequence> modeAdapter =
+                ArrayAdapter.createFromResource(
+                        this,
+                        R.array.game_modes,
+                        android.R.layout.simple_spinner_item);
+
+        modeAdapter.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item);
+
+        modeSpinner.setAdapter(modeAdapter);
 
         //UI logic set kare (Grid, Spinner, etc.)
         gridLayout.setRowCount(ROWS);
@@ -177,113 +186,179 @@ public class MainActivity extends AppCompatActivity {
         //winLine = findViewById(R.id.winLine);
         boardContainer = findViewById(R.id.boardContainer);
 
-        //leaderboard listener
-        leaderboardBtn.setOnClickListener(v -> {
-            showLeaderboardDialog();
-        });
+        //change undolimit
+//        String[] difficulty = {difficultySpinner.getSelectedItem().toString()};
 
-        // theme button click
-        //Theme load
-        currentThemeIndex = prefs.getInt("theme", 0);
-        //theme apply
-        applyTheme();
+        if (levels.equals("Easy")) {
+            undoLimit = 5;
+        } else if (levels.equals("Medium")) {
+            undoLimit = 4;
+        } else if (levels.equals("Hard")) {
+            undoLimit = 3;
+        }
 
-        //theme Spinner setup
-        Spinner themeSpinner = findViewById(R.id.themeSpinner);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_spinner_dropdown_item,
-                themeNames
-        );
+        updateUndoButton();
 
-        themeSpinner.setAdapter(adapter);
-        //select saved theme
-        themeSpinner.setSelection(currentThemeIndex);
-        //theme listener
-        themeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                currentThemeIndex = position;
-
-                applyTheme();
-                // save theme safe call
-                if (prefs != null) {
-                    saveTheme();
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
+        //undo
+        undoBtn.setOnClickListener(v -> undoMove());
 
         //Restart button Listeners
         restartBtn.setOnClickListener(v -> resetGame());
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                difficulty = levels[position];
-                //restart new game when Difficulty changed
-                resetGame();
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
+//        difficulties = {"Easy", "Medium", "Hard"};
+
+        difficultySpinner.setOnItemSelectedListener(
+                new AdapterView.OnItemSelectedListener() {
+
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent,
+                                               View view,
+                                               int position,
+                                               long id) {
+
+                        difficulty = levels[position];
+
+                        resetGame();
+
+                        if ("Easy".equals(difficulty)) {
+                            undoLimit = 5;
+                        } else if ("Medium".equals(difficulty)) {
+                            undoLimit = 4;
+                        } else if ("Hard".equals(difficulty)) {
+                            undoLimit = 3;
+                        }
+
+//                        undoLeft = undoLimit;
+                        updateUndoButton();
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+
+                    }
+                });
+
+        modeSpinner.setOnItemSelectedListener(
+                new AdapterView.OnItemSelectedListener() {
+
+                    @Override
+                    public void onItemSelected(
+                            AdapterView<?> parent,
+                            View view,
+                            int position,
+                            long id) {
+
+                        isPvP = position == 1;
+                        resetGame();
+                        updateScore();
+
+                        if (isPvP) {
+                            statusText.setText("Player 1 Turn");
+                        } else {
+                            statusText.setText("Your Turn");
+                        }
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+
+                    }
+                });
 
         //create game board
         createBoardUI();
     }
 
-    //save Multiple theme local device
-    void saveTheme() {
-        prefs.edit().putInt("theme", currentThemeIndex).apply();
-    }
+    void saveBoardState() {
 
-    //Multiple Theme apply
-    void applyTheme() {
-        Theme t = themes[currentThemeIndex];
-        View root = getWindow().getDecorView();
+        int[][] copy = new int[ROWS][COLS];
 
-        // change Background color
-        if (t.isGradient) {
-            GradientDrawable gradient = new GradientDrawable(
-                    GradientDrawable.Orientation.TOP_BOTTOM,
-                    new int[]{t.bgColorStart, t.bgColorEnd}
-            );
-            root.setBackground(gradient);
-        } else {
-            root.setBackgroundColor(t.bgColorStart);
+        for (int r = 0; r < ROWS; r++) {
+
+            for (int c = 0; c < COLS; c++) {
+
+                copy[r][c] = board[r][c];
+            }
         }
 
-        // change Text colors
-        statusText.setTextColor(t.textColor);
-        scoreText.setTextColor(t.textColor);
+        boardHistory.push(copy);
+
+        // 🔥 SAVE TURN ALSO
+        turnHistory.push(playerTurn);
+    }
+
+    void undoMove() {
+
+        if (undoLimit <= 0) {
+
+            Toast.makeText(this,
+                    "No Undo Left",
+                    Toast.LENGTH_SHORT).show();
+
+            return;
+        }
+
+        if (boardHistory.empty()) {
+
+            Toast.makeText(this,
+                    "Nothing to Undo",
+                    Toast.LENGTH_SHORT).show();
+
+            return;
+        }
+
+        // 🔥 Restore previous board
+        int[][] prevBoard = boardHistory.pop();
+
+        for (int r = 0; r < ROWS; r++) {
+
+            for (int c = 0; c < COLS; c++) {
+
+                board[r][c] = prevBoard[r][c];
+            }
+        }
+
+        // 🔥 FULL UI REFRESH
+        refreshBoardUI();
+
+        undoLimit--;
+
+        updateUndoButton();
+
+        enableBoard();
+    }
+
+    void updateUndoButton() {
+        undoBtn.setText("Undo (" + undoLimit + ")");
+    }
+
+    void refreshBoardUI() {
+
+        for (int r = 0; r < ROWS; r++) {
+
+            for (int c = 0; c < COLS; c++) {
+
+                if (board[r][c] == 1) {
+
+                    cells[r][c].setImageResource(
+                            R.drawable.red_disc);
+
+                } else if (board[r][c] == 2) {
+
+                    cells[r][c].setImageResource(
+                            R.drawable.yellow_disc);
+
+                } else {
+
+                    cells[r][c].setImageDrawable(null);
+                }
+            }
+        }
     }
 
     //play sound method
     void playSound(MediaPlayer mp) {
         if (mp != null) {
             mp.start();
-        }
-    }
-
-    //background music on/off method
-    void toggleMusic() {
-        if (isMusicOn) {
-            bgMusic.pause();
-        } else {
-            bgMusic.start();
-        }
-        isMusicOn = !isMusicOn;
-    }
-
-    //vibration effect method
-    void vibrate() {
-        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            v.vibrate(VibrationEffect.createOneShot(150, VibrationEffect.DEFAULT_AMPLITUDE));
-        } else {
-            v.vibrate(150);
         }
     }
 
@@ -325,55 +400,146 @@ public class MainActivity extends AppCompatActivity {
 
         if (row == -1) return;
 
-        board[row][col] = 1;
-        updateUI(row, col, 1);
-        playSound(tapSound);
+        // 🎯 PvP Mode
+        if (isPvP) {
 
-        if (checkWin(1)) {
-            playerScore++;
-            updateScore();
-            playSound(winSound);
-            vibrate();
-            //winLineView.post(() -> drawWinningLine());
-            //drawWinningLine();
-            highlightWinningCells();
-            showNameDialog(playerScore);
-            showWinner("You Win!");
-            statusText.setText("You Win!");
-            disableBoard();
+            int disc = playerTurn ? 1 : 2;
+
+            saveBoardState();
+            board[row][col] = disc;
+
+            updateUI(row, col, disc);
+
+            playSound(tapSound);
+
+            // WIN CHECK
+            if (checkWin(disc)) {
+
+                highlightWinningCells();
+
+                drawWinningLine();
+
+                showWinner(
+                        playerTurn
+                                ? "Player 1 Wins!"
+                                : "Player 2 Wins!");
+
+                disableBoard();
+
+                return;
+            }
+
+            // DRAW
+            if (isBoardFull()) {
+
+                showWinner("Draw 🤝");
+
+                statusText.setText("Draw!");
+
+                disableBoard();
+
+                return;
+            }
+
+            // TURN CHANGE
+            playerTurn = !playerTurn;
+
+            statusText.setText(
+                    playerTurn
+                            ? "Player 1 Turn"
+                            : "Player 2 Turn");
+
             return;
         }
 
-        //check for draw
-        if (isBoardFull()) {
-            showWinner("Draw 🤝");
-            statusText.setText("Draw!");
-            playSound(drawSound);
+        // 🎯 PLAYER vs AI MODE
+        saveBoardState();
+        board[row][col] = 1;
+
+        updateUI(row, col, 1);
+
+        playSound(tapSound);
+
+        if (checkWin(1)) {
+
+            playerScore++;
+
+            updateScore();
+
+            playSound(winSound);
+
+            highlightWinningCells();
+
+            showNameDialog(playerScore);
+
+            showWinner("You Win!");
+
+            statusText.setText("You Win!");
+
             disableBoard();
+
+            return;
         }
 
-        //AI Move delay
+        // DRAW
+        if (isBoardFull()) {
+
+            showWinner("Draw 🤝");
+
+            statusText.setText("Draw!");
+
+            playSound(drawSound);
+
+            disableBoard();
+
+            return;
+        }
+
+        // 🎯 AI MOVE
         gridLayout.postDelayed(() -> {
+
             int aiCol = getAIMove();
+
             int aiRow = getAvailableRow(aiCol);
 
             if (aiRow != -1) {
+
                 board[aiRow][aiCol] = 2;
+
                 updateUI(aiRow, aiCol, 2);
 
                 if (checkWin(2)) {
+
                     aiScore++;
+
                     updateScore();
-                    //winLineView.post(() -> drawWinningLine());
-                    //drawWinningLine();
+
                     highlightWinningCells();
+
                     drawWinningLine();
+
                     playSound(loseSound);
+
                     showWinner("Computer Wins!");
+
                     statusText.setText("Computer Wins!");
+
+                    disableBoard();
+
+                    return;
+                }
+
+                // DRAW AFTER AI
+                if (isBoardFull()) {
+
+                    showWinner("Draw 🤝");
+
+                    statusText.setText("Draw!");
+
                     disableBoard();
                 }
             }
+
         }, 500);
     }
 
@@ -417,7 +583,7 @@ public class MainActivity extends AppCompatActivity {
                 .setInterpolator(new AccelerateInterpolator())
                 .withEndAction(() -> {
                     playSound(dropSound);
-                    vibrate();
+//                    vibrate();
                 })
                 .start();
         return disc;
@@ -556,15 +722,86 @@ public class MainActivity extends AppCompatActivity {
 
     //AI Move
     int getAIMove() {
-        switch (difficulty) {
-            case "EASY":
-                return getRandomMove();
-            case "MEDIUM":
-                return getMediumMove();
-            case "HARD":
-                return getBestMove();
+
+        String difficulty =
+                difficultySpinner.getSelectedItem().toString();
+
+        // 🎯 EASY = RANDOM
+        if (difficulty.equals("Easy")) {
+
+            ArrayList<Integer> moves = new ArrayList<>();
+
+            for (int c = 0; c < COLS; c++) {
+
+                if (getAvailableRow(c) != -1) {
+                    moves.add(c);
+                }
+            }
+
+            return moves.get(
+                    new Random().nextInt(moves.size()));
         }
-        return 0;
+
+        // 🎯 MEDIUM
+        // Try win
+        // Try block
+        // else random
+
+        if (difficulty.equals("Medium")) {
+
+            // WIN MOVE
+            for (int c = 0; c < COLS; c++) {
+
+                int r = getAvailableRow(c);
+
+                if (r != -1) {
+
+                    board[r][c] = 2;
+
+                    if (checkWin(2)) {
+                        board[r][c] = 0;
+                        return c;
+                    }
+
+                    board[r][c] = 0;
+                }
+            }
+
+            // BLOCK PLAYER
+            for (int c = 0; c < COLS; c++) {
+
+                int r = getAvailableRow(c);
+
+                if (r != -1) {
+
+                    board[r][c] = 1;
+
+                    if (checkWin(1)) {
+                        board[r][c] = 0;
+                        return c;
+                    }
+
+                    board[r][c] = 0;
+                }
+            }
+
+            // RANDOM
+            ArrayList<Integer> moves = new ArrayList<>();
+
+            for (int c = 0; c < COLS; c++) {
+
+                if (getAvailableRow(c) != -1) {
+                    moves.add(c);
+                }
+            }
+
+            return moves.get(
+                    new Random().nextInt(moves.size()));
+        }
+
+        // 🎯 HARD = UNBEATABLE
+
+        return getBestMove();
     }
 
     //EASY
@@ -609,111 +846,89 @@ public class MainActivity extends AppCompatActivity {
         return getRandomMove();
     }
 
-    //HARD (Minimax simplified)
-//    int getBestMove() {
-//        int bestScore = -1000;
-//        int move = 0;
-
-//        for (int c = 0; c < COLS; c++) {
-//            int r = getAvailableRow(c);
-//            if (r != -1) {
-//                board[r][c] = 2;
-//                int score = minimax(4, false);
-//                board[r][c] = 0;
-//
-//                if (score > bestScore) {
-//                    bestScore = score;
-//                    move = c;
-//                }
-//            }
-//        }
-//        return move;
-//    }
-
+    //HARD AI
     int getBestMove() {
 
-        int bestScore = -1000;
-        int move = 0;
+        int bestScore = Integer.MIN_VALUE;
+
+        int bestCol = 0;
 
         for (int c = 0; c < COLS; c++) {
+
             int r = getAvailableRow(c);
 
             if (r != -1) {
+
                 board[r][c] = 2;
 
-//                minimax(4, -1000, 1000, false);
-                int score = minimax(5, -1000, 1000, false);
+                int score = minimax(4, false);
 
                 board[r][c] = 0;
 
                 if (score > bestScore) {
+
                     bestScore = score;
-                    move = c;
+
+                    bestCol = c;
                 }
             }
         }
 
-        return move;
+        return bestCol;
     }
 
-    int minimax(int depth, int alpha, int beta, boolean isMax) {
+    int minimax(int depth, boolean maximizing) {
 
         if (checkWin(2)) return 100;
+
         if (checkWin(1)) return -100;
 
-        if (depth == 0) return evaluateBoard();
+        if (depth == 0 || isBoardFull()) return 0;
 
-        if (isMax) {
-            int maxEval = -1000;
+        if (maximizing) {
+
+            int best = Integer.MIN_VALUE;
 
             for (int c = 0; c < COLS; c++) {
+
                 int r = getAvailableRow(c);
+
                 if (r != -1) {
+
                     board[r][c] = 2;
 
-                    int eval = minimax(depth - 1, alpha, beta, false);
+                    best = Math.max(
+                            best,
+                            minimax(depth - 1, false));
 
                     board[r][c] = 0;
-
-                    maxEval = Math.max(maxEval, eval);
-                    alpha = Math.max(alpha, eval);
-
-                    if (beta <= alpha) break; // pruning
                 }
             }
-            return maxEval;
+
+            return best;
 
         } else {
-            int minEval = 1000;
+
+            int best = Integer.MAX_VALUE;
 
             for (int c = 0; c < COLS; c++) {
+
                 int r = getAvailableRow(c);
+
                 if (r != -1) {
+
                     board[r][c] = 1;
 
-                    int eval = minimax(depth - 1, alpha, beta, true);
+                    best = Math.min(
+                            best,
+                            minimax(depth - 1, true));
 
                     board[r][c] = 0;
-
-                    minEval = Math.min(minEval, eval);
-                    beta = Math.min(beta, eval);
-
-                    if (beta <= alpha) break; // pruning
                 }
             }
-            return minEval;
+
+            return best;
         }
-    }
-
-    int evaluateBoard() {
-        int score = 0;
-
-        // center column preference
-        for (int r = 0; r < ROWS; r++) {
-            if (board[r][COLS/2] == 2) score += 3;
-        }
-
-        return score;
     }
 
     //Restart method
@@ -725,30 +940,58 @@ public class MainActivity extends AppCompatActivity {
                 cells[r][c].setBackground(null); // disc हटाओ
             }
         }
-
+        boardHistory.clear();
+        playerTurnHistory.clear();
+        playerTurn = true;
         //enable Grid again
         gridLayout.setEnabled(true);
+        updateScore();
 
         //enable each cell
         for (int i = 0; i < gridLayout.getChildCount(); i++) {
             gridLayout.getChildAt(i).setEnabled(true);
         }
         statusText.setText("Your Turn");
-        applyTheme();
+//        applyTheme();
     }
 
-    //disable game board method
     void disableBoard() {
-        gridLayout.setEnabled(false);
 
-        for (int i = 0; i < gridLayout.getChildCount(); i++) {
-            gridLayout.getChildAt(i).setEnabled(false);
+        for (int r = 0; r < ROWS; r++) {
+
+            for (int c = 0; c < COLS; c++) {
+
+                cells[r][c].setEnabled(false);
+            }
+        }
+    }
+
+    void enableBoard() {
+
+        for (int r = 0; r < ROWS; r++) {
+
+            for (int c = 0; c < COLS; c++) {
+
+                cells[r][c].setEnabled(true);
+            }
         }
     }
 
     //update Scoreboard
     void updateScore() {
-        scoreText.setText("Player: " + playerScore + "  AI: " + aiScore);
+
+        if (isPvP) {
+
+            scoreText.setText(
+                    "Player 1: " + playerScore +
+                            "   Player 2: " + aiScore);
+
+        } else {
+
+            scoreText.setText(
+                    "Player: " + playerScore +
+                            "   AI: " + aiScore);
+        }
     }
 
     //get cell center for draw winline
@@ -778,28 +1021,6 @@ public class MainActivity extends AppCompatActivity {
         });
         animator.start();
     }
-//    leaderboard test save
-//    void testSave() {
-//        String id = dbRef.push().getKey();
-//        Map<String, Object> data = new HashMap<>();
-//        data.put("name", "TestUser");
-//        data.put("score", new Random().nextInt(100));
-//        Toast.makeText(this, "testSave!", Toast.LENGTH_SHORT).show();
-//        dbRef.child(id).setValue(data)
-//                .addOnSuccessListener(aVoid -> {
-//                    Toast.makeText(this, "Saved!", Toast.LENGTH_SHORT).show();
-//                })
-//                .addOnFailureListener(e -> {
-//                    Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-//                });
-//        dbRef.child(id).setValue(data)
-//                .addOnSuccessListener(aVoid ->
-//                        Toast.makeText(this, "Saved!", Toast.LENGTH_SHORT).show()
-//                )
-//                .addOnFailureListener(e ->
-//                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show()
-//                );
-//    }
 
     //name dialog box display method
     void showNameDialog(int score) {
@@ -823,7 +1044,6 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(this, "Enter valid name", Toast.LENGTH_SHORT).show();
                     }
 
-                    saveScore(name, score); // Firebase save
 //                    saveScore("Player", playerScore);
 //                    showNameDialog(playerScore);
                 })
@@ -843,88 +1063,5 @@ public class MainActivity extends AppCompatActivity {
     String getPlayerName() {
         return getSharedPreferences("game_prefs", MODE_PRIVATE)
                 .getString("player_name", "");
-    }
-
-    //save score to leaderboard
-    void saveScore(String name, int score) {
-
-        DatabaseReference dbRef = FirebaseDatabase
-                .getInstance("https://fourinarow-31ccf-default-rtdb.asia-southeast1.firebasedatabase.app/")
-                .getReference("leaderboard");
-
-        String id = dbRef.push().getKey();
-
-        if (id == null) return;
-
-        Map<String, Object> data = new HashMap<>();
-        data.put("name", name);
-        data.put("score", score);
-
-        dbRef.child(id).setValue(data)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Score Saved!", Toast.LENGTH_SHORT).show();
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
-    }
-
-    //show leaderboard in pupup box
-    void showLeaderboardDialog() {
-
-        View view = getLayoutInflater().inflate(R.layout.dialog_leaderboard, null);
-
-        RecyclerView recycler = view.findViewById(R.id.dialogRecycler);
-        recycler.setLayoutManager(new LinearLayoutManager(this));
-
-        List<Player> list = new ArrayList<>();
-        LeaderboardAdapter adapter = new LeaderboardAdapter(list);
-        recycler.setAdapter(adapter);
-
-        DatabaseReference dbRef = FirebaseDatabase
-                .getInstance("https://fourinarow-31ccf-default-rtdb.asia-southeast1.firebasedatabase.app/")
-                .getReference("leaderboard");
-
-        dbRef.orderByChild("score").limitToLast(20)
-                .addValueEventListener(new ValueEventListener() {
-
-                    @Override
-                    public void onDataChange(DataSnapshot snapshot) {
-
-                        list.clear();
-
-                        for (DataSnapshot data : snapshot.getChildren()) {
-                            Player p = data.getValue(Player.class);
-                            if (p != null) list.add(p);
-                        }
-
-                        Collections.reverse(list);
-                        adapter.notifyDataSetChanged();
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError error) {}
-                });
-
-        //big alert dialog box
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setView(view)
-                .create();
-
-        dialog.show();
-
-        // Transparent background
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-
-        dialog.getWindow().setLayout(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        );
-
-        //increase popup window height
-        dialog.getWindow().setLayout(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                1200 // height px
-        );
     }
 }

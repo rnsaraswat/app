@@ -1,5 +1,9 @@
 package com.example.ravindragameshub.common;
 
+// ==========================================
+// ThemeManager.java
+// Common sound System for All Games
+// ==========================================
 import android.content.Context;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
@@ -18,6 +22,7 @@ public class SoundManager {
     private static int drawSound;
     private static int errorSound;
     private static int flipSound;
+    private static int ballTapSound;
 
     private static boolean loaded = false;
 
@@ -71,6 +76,10 @@ public class SoundManager {
                 soundPool.load(context,
                         R.raw.flip, 1);
 
+        ballTapSound =
+                soundPool.load(context,
+                        R.raw.balltap, 1);
+
         loaded = true;
     }
 
@@ -81,7 +90,7 @@ public class SoundManager {
                     1, 1, 1, 0, 1);
     }
 
-    public static void tapClick() {
+    public static void playTap() {
 
         if (soundPool != null)
             soundPool.play(tapSound,
@@ -127,6 +136,13 @@ public class SoundManager {
 
         if (soundPool != null)
             soundPool.play(flipSound,
+                    1, 1, 1, 0, 1);
+    }
+
+    public static void playBallTap() {
+
+        if (soundPool != null)
+            soundPool.play(ballTapSound,
                     1, 1, 1, 0, 1);
     }
 

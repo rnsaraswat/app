@@ -1,445 +1,840 @@
 package com.example.tictactoe;
 
-import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
-import android.widget.*;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.GridLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
-import java.util.*;
-import android.media.MediaPlayer;
+
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.Stack;
 
 public class MainActivity extends AppCompatActivity {
 
-    //Multiple themes gradient
-    //Theme class
-    static class Theme {
-        int bgColorStart;
-        int bgColorEnd;
-        int btnColor;
-        int textColor;
-        boolean isGradient;
+    public class Move {
 
-        Theme(int bgStart, int bgEnd, int btn, int text, boolean gradient) {
-            bgColorStart = bgStart;
-            bgColorEnd = bgEnd;
-            btnColor = btn;
-            textColor = text;
-            isGradient = gradient;
+        public int row;
+        public int col;
+        public char player;
+
+        public Move(int row, int col, char player) {
+
+            this.row = row;
+            this.col = col;
+            this.player = player;
+
         }
     }
 
-    //define Themes
-    Theme lightTheme = new Theme(Color.WHITE, Color.WHITE, Color.LTGRAY, Color.BLACK, false);
-    Theme darkTheme = new Theme(Color.BLACK, Color.BLACK, Color.DKGRAY, Color.WHITE, false);
-    //Blue Gradient
-    Theme blueTheme = new Theme(
-            Color.parseColor("#0D47A1"),
-            Color.parseColor("#42A5F5"),
-            Color.parseColor("#1976D2"),
-            Color.WHITE,
-            true
-    );
-    //Orange Gradient
-    Theme orangeTheme = new Theme(
-            Color.parseColor("#E65100"),
-            Color.parseColor("#FFB74D"),
-            Color.parseColor("#FB8C00"),
-            Color.BLACK,
-            true
-    );
-    // Theme Array
-    Theme[] themes = {lightTheme, darkTheme, blueTheme, orangeTheme};
-    // theme names display in dropdown
-    String[] themeNames = {"Light", "Dark", "Blue", "Orange"};
-    //set Current theme index
-    int currentThemeIndex = 0;
+    private TextView statusText;
+    private TextView scoreText;
 
-    //variables
-    //theme local saved variable
-    SharedPreferences prefs;
-    //tic tac toe game buttons (3x3=9)
-    Button[] buttons = new Button[9];
-    //status text view
-    TextView statusText;
-    //level drop down button
-    Spinner levelSpinner;
-    //board variable Spaces(empty) in initial
-    char[] board = {' ',' ',' ',' ',' ',' ',' ',' ',' '};
-    //player / ai variable
-    char player = 'X';
-    char ai = 'O';
-    //winline variable
-    View winLine;
-    //player / ai score variable
-    int playerScore = 0;
-    int aiScore = 0;
-    //score text view
-    TextView scoreText;
-    //sound variables
-    MediaPlayer tapSound, winSound, loseSound, drawSound;
-    MediaPlayer bgMusic;
-    boolean isMusicOn = false;
-    //fireworks variable
-    FireworksView fireworks;
-    //define winning combination
-    int[][] winCombos = {
-            {0,1,2},{3,4,5},{6,7,8},
-            {0,3,6},{1,4,7},{2,5,8},
-            {0,4,8},{2,4,6}
-    };
-    //random move
-    Random rand = new Random();
+    private Spinner modeSpinner;
+    private Spinner levelSpinner;
+
+    private Button restartBtn;
+    private Button undoBtn;
+
+    private GridLayout gameBoard;
+
+    private final Button[][] cells = new Button[3][3];
+
+    private final char[][] board = new char[3][3];
+
+    private char currentPlayer = 'X';
+
+    private boolean vsAI = false;
+
+    private int player1Score = 0;
+    private int player2Score = 0;
+    private int aiScore = 0;
+
+    private int maxUndo = 3;
+    private int remainingUndo = 3;
+
+    private final Random random = new Random();
+
+    private final Stack<Move> moveHistory = new Stack<>();
+
+    private int[][] winningCells =
+            new int[3][2];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //variable to save local
-        prefs = getSharedPreferences("settings", MODE_PRIVATE);
-        //score
-        scoreText = findViewById(R.id.scoreText);
-        //winline
-        winLine = findViewById(R.id.winLine);
-        //status
-        statusText = findViewById(R.id.statusText);
-        //level
-        levelSpinner = findViewById(R.id.levelSpinner);
 
-        //background music
-        bgMusic = MediaPlayer.create(this, R.raw.bg_music);
-        bgMusic.setLooping(true);
-        //back ground music button
-        findViewById(R.id.musicBtn).setOnClickListener(v -> toggleMusic());
-        //sound variables
-        tapSound = MediaPlayer.create(this, R.raw.tap);
-        winSound = MediaPlayer.create(this, R.raw.win);
-        loseSound = MediaPlayer.create(this, R.raw.lose);
-        drawSound = MediaPlayer.create(this, R.raw.draw);
+        initViews();
 
-        //fireworks display
-        fireworks = new FireworksView(this);
-        addContentView(fireworks,
-                new FrameLayout.LayoutParams(
-                        FrameLayout.LayoutParams.MATCH_PARENT,
-                        FrameLayout.LayoutParams.MATCH_PARENT));
+        setupSpinners();
 
-        //change & set levels
-        String[] levels = {"Easy", "Medium", "Hard"};
-        levelSpinner.setAdapter(new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_dropdown_item, levels));
+        levelSpinner.setOnItemSelectedListener(
+                new AdapterView.OnItemSelectedListener() {
 
-        //game buttons click
-        for (int i = 0; i < 9; i++) {
-            int id = getResources().getIdentifier("b" + i, "id", getPackageName());
-            buttons[i] = findViewById(id);
+                    @Override
+                    public void onItemSelected(
+                            AdapterView<?> parent,
+                            View view,
+                            int position,
+                            long id) {
 
-            int index = i;
-            buttons[i].setOnClickListener(v -> playerMove(index));
-        }
-        // theme button click
-        //Theme load
-        currentThemeIndex = prefs.getInt("theme", 0);
-        //theme apply
-        applyTheme();
+                        updateUndoLimit();
+                    }
 
-        //theme Spinner setup
-        Spinner themeSpinner = findViewById(R.id.themeSpinner);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_spinner_dropdown_item,
-                themeNames
-        );
+                    @Override
+                    public void onNothingSelected(
+                            AdapterView<?> parent) {
 
-        themeSpinner.setAdapter(adapter);
-        // saved theme select करो
-        themeSpinner.setSelection(currentThemeIndex);
-
-        themeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                currentThemeIndex = position;
-
-                applyTheme();
-                // save theme safe call
-                if (prefs != null) {
-                    saveTheme();
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
-
-        //restart button
-        findViewById(R.id.restartBtn).setOnClickListener(v -> resetGame());
-    }
-
-    //save theme local Multiple
-    void saveTheme() {
-        prefs.edit().putInt("theme", currentThemeIndex).apply();
-    }
-
-    //applyTheme method Multiple
-    void applyTheme() {
-        Theme t = themes[currentThemeIndex];
-        View root = getWindow().getDecorView();
-
-        // change Background color
-        if (t.isGradient) {
-            GradientDrawable gradient = new GradientDrawable(
-                    GradientDrawable.Orientation.TOP_BOTTOM,
-                    new int[]{t.bgColorStart, t.bgColorEnd}
-            );
-            root.setBackground(gradient);
-        } else {
-            root.setBackgroundColor(t.bgColorStart);
-        }
-
-        // change Buttons colors
-        for (Button b : buttons) {
-            b.setBackgroundColor(t.btnColor);
-            b.setTextColor(t.textColor);
-        }
-
-        // change Text colors
-        statusText.setTextColor(t.textColor);
-        scoreText.setTextColor(t.textColor);
-    }
-
-    //play sound method
-    void playSound(MediaPlayer mp) {
-        if (mp != null) {
-            mp.start();
-        }
-    }
-
-    //background music on/off
-    void toggleMusic() {
-        if (isMusicOn) {
-            bgMusic.pause();
-        } else {
-            bgMusic.start();
-        }
-        isMusicOn = !isMusicOn;
-    }
-
-    //draw win line
-    void drawWinLine(int[] combo) {
-        winLine.setVisibility(View.VISIBLE);
-        winLine.setScaleX(0f);
-
-        winLine.animate()
-                .scaleX(1f)
-                .setDuration(600)
-                .setInterpolator(new android.view.animation.DecelerateInterpolator())
-                .start();
-    }
-
-    //player move
-    void playerMove(int i) {
-        if (board[i] != ' ') return;
-
-        board[i] = player;
-        buttons[i].setText("X");
-        playSound(tapSound);
-
-        //Button Click Animation (Smooth animation)
-        buttons[i].animate()
-                .scaleX(0.8f)
-                .scaleY(0.8f)
-                .setDuration(100)
-                .withEndAction(() -> {
-                    buttons[i].setScaleX(1f);
-                    buttons[i].setScaleY(1f);
+                    }
                 });
 
-        //check win
-        if (checkWin(player)) {
-            statusText.setText("You Win!");
-            playerScore++;
-            updateScore();
-            highlightWin(player);
-            playSound(winSound);
-            fireworks.setVisibility(View.VISIBLE);
-            fireworks.start();
-            disableAll();
+        modeSpinner.setOnItemSelectedListener(
+                new AdapterView.OnItemSelectedListener() {
+
+                    @Override
+                    public void onItemSelected(
+                            AdapterView<?> parent,
+                            View view,
+                            int position,
+                            long id) {
+
+                        vsAI = position == 1;
+
+                        updateScoreText();
+
+                        resetBoard();
+                    }
+
+                    @Override
+                    public void onNothingSelected(
+                            AdapterView<?> parent) {
+
+                    }
+                });
+
+        createBoard();
+
+        updateUndoButton();
+
+        restartBtn.setOnClickListener(v -> resetBoard());
+
+        undoBtn.setOnClickListener(v -> {
+
+            // Undo Logic
+            // Part 4 mein add karenge
+
+        });
+
+        undoBtn.setOnClickListener(v -> {
+
+            undoMove();
+
+        });
+    }
+
+    private void initViews() {
+
+        statusText = findViewById(R.id.statusText);
+        scoreText = findViewById(R.id.scoreText);
+
+        modeSpinner = findViewById(R.id.modeSpinner);
+        levelSpinner = findViewById(R.id.levelSpinner);
+
+        restartBtn = findViewById(R.id.restartBtn);
+        undoBtn = findViewById(R.id.undoBtn);
+
+        gameBoard = findViewById(R.id.gameBoard);
+    }
+
+    private void setupSpinners() {
+
+        String[] modes = {
+                "Player vs Player",
+                "Player vs AI"
+        };
+
+        ArrayAdapter<String> modeAdapter =
+                new ArrayAdapter<>(
+                        this,
+                        android.R.layout.simple_spinner_dropdown_item,
+                        modes
+                );
+
+        modeSpinner.setAdapter(modeAdapter);
+
+        String[] levels = {
+                "Easy",
+                "Medium",
+                "Hard"
+        };
+
+        ArrayAdapter<String> levelAdapter =
+                new ArrayAdapter<>(
+                        this,
+                        android.R.layout.simple_spinner_dropdown_item,
+                        levels
+                );
+
+        levelSpinner.setAdapter(levelAdapter);
+
+    }
+
+    private void createBoard() {
+
+        gameBoard.removeAllViews();
+
+        for (int row = 0; row < 3; row++) {
+
+            for (int col = 0; col < 3; col++) {
+
+                Button cell = new Button(this);
+
+                GridLayout.LayoutParams params =
+                        new GridLayout.LayoutParams();
+
+                params.width = 220;
+                params.height = 220;
+
+                cell.setLayoutParams(params);
+
+                cell.setTextSize(30);
+
+                final int r = row;
+                final int c = col;
+
+                cell.setOnClickListener(v -> {
+
+                    onCellClicked(r, c);
+
+                });
+
+                cells[row][col] = cell;
+
+                gameBoard.addView(cell);
+
+            }
+        }
+    }
+
+    private void resetBoard() {
+
+        for (int r = 0; r < 3; r++) {
+
+            for (int c = 0; c < 3; c++) {
+
+                board[r][c] = '\0';
+
+                cells[r][c].setText("");
+                cells[r][c].setEnabled(true);
+
+                cells[r][c].setScaleX(1f);
+                cells[r][c].setScaleY(1f);
+
+                cells[r][c].setBackgroundResource(
+                        android.R.drawable.btn_default);
+            }
+        }
+
+        moveHistory.clear();
+
+        currentPlayer = 'X';
+
+        remainingUndo = maxUndo;
+
+        updateUndoButton();
+
+        if (vsAI) {
+
+            statusText.setText(
+                    "Player Turn");
+
+        } else {
+
+            statusText.setText(
+                    "Player 1 Turn");
+        }
+    }
+
+    private void onCellClicked(int row, int col) {
+
+        if (board[row][col] != '\0')
+            return;
+
+        board[row][col] = currentPlayer;
+
+        cells[row][col].setText(
+                String.valueOf(currentPlayer));
+
+        moveHistory.push(
+                new Move(
+                        row,
+                        col,
+                        currentPlayer));
+
+        if (checkWinner(currentPlayer)) {
+
+            handleWinner(currentPlayer);
+
             return;
         }
 
-        //check for draw
-        if (isDraw()) {
+        if (isBoardFull()) {
+
             statusText.setText("Draw!");
-            playSound(drawSound);
+
+            disableBoard();
+
             return;
         }
 
-        //disable all button during before computer move & enable after
-        new android.os.Handler().postDelayed(() -> {
-            disableAll();
+        switchTurn();
+
+        if (vsAI && currentPlayer == 'O') {
+
             aiMove();
-            enableAll();
-        }, 400);
-    }
 
-    //computer turn
-    void aiMove() {
-        int move = getBestMove();
-        board[move] = ai;
-        buttons[move].setText("O");
-
-        if (checkWin(ai)) {
-            statusText.setText("Computer Wins!");
-            aiScore++;
-            updateScore();
-            highlightWin(ai);
-            playSound(loseSound);
-            disableAll();
-            return;
-        }
-
-        if (isDraw()) {
-            statusText.setText("Draw!");
-            playSound(drawSound);
         }
     }
 
-    //update score
-    void updateScore() {
-        scoreText.setText("Player: " + playerScore + "  AI: " + aiScore);
+    private void disableBoard() {
+
+        for(int r=0;r<3;r++) {
+
+            for(int c=0;c<3;c++) {
+
+                cells[r][c].setEnabled(false);
+
+            }
+        }
     }
 
-    //LEVEL LOGIC
-    int getBestMove() {
-        String level = levelSpinner.getSelectedItem().toString();
+    private void switchTurn() {
 
-        if (level.equals("Easy")) {
-            return getRandomMove();
-        } else if (level.equals("Medium")) {
-            return rand.nextBoolean() ? getRandomMove() : minimaxMove();
+        currentPlayer =
+                currentPlayer == 'X'
+                        ? 'O'
+                        : 'X';
+
+        if (vsAI) {
+
+            statusText.setText(
+                    currentPlayer == 'X'
+                            ? "Player Turn"
+                            : "AI Turn");
+
         } else {
-            return minimaxMove(); // Hard
+
+            statusText.setText(
+                    currentPlayer == 'X'
+                            ? "Player 1 Turn"
+                            : "Player 2 Turn");
+
         }
     }
 
-    int getRandomMove() {
-        List<Integer> empty = new ArrayList<>();
-        for (int i = 0; i < 9; i++) {
-            if (board[i] == ' ') empty.add(i);
-        }
-        return empty.get(rand.nextInt(empty.size()));
-    }
+    private boolean isBoardFull() {
 
-    //MINIMAX
-    int minimaxMove() {
-        int bestScore = Integer.MIN_VALUE;
-        int move = 0;
+        for (int r = 0; r < 3; r++) {
 
-        for (int i = 0; i < 9; i++) {
-            if (board[i] == ' ') {
-                board[i] = ai;
-                int score = minimax(0, false);
-                board[i] = ' ';
+            for (int c = 0; c < 3; c++) {
 
-                if (score > bestScore) {
-                    bestScore = score;
-                    move = i;
-                }
+                if (board[r][c] == '\0')
+                    return false;
             }
         }
-        return move;
+
+        return true;
     }
 
-    int minimax(int depth, boolean isMax) {
-        if (checkWin(ai)) return 10 - depth;
-        if (checkWin(player)) return depth - 10;
-        if (isDraw()) return 0;
+    private boolean checkWinner(char player) {
 
-        if (isMax) {
-            int best = Integer.MIN_VALUE;
-            for (int i = 0; i < 9; i++) {
-                if (board[i] == ' ') {
-                    board[i] = ai;
-                    best = Math.max(best, minimax(depth + 1, false));
-                    board[i] = ' ';
-                }
-            }
-            return best;
-        } else {
-            int best = Integer.MAX_VALUE;
-            for (int i = 0; i < 9; i++) {
-                if (board[i] == ' ') {
-                    board[i] = player;
-                    best = Math.min(best, minimax(depth + 1, true));
-                    board[i] = ' ';
-                }
-            }
-            return best;
+        //row win
+        for (int r = 0; r < 3; r++) {
+
+            if (board[r][0] == player &&
+                    board[r][1] == player &&
+                    board[r][2] == player){
+
+
+                winningCells[0]=new int[]{r,0};
+                winningCells[1]=new int[]{r,1};
+                winningCells[2]=new int[]{r,2};
+                return true;}
         }
-    }
 
-    //enable all buttons
-    void enableAll() {
-        for (int i = 0; i < 9; i++) {
-            if (board[i] == ' ') buttons[i].setEnabled(true);
+        //Column Win:
+        for (int c = 0; c < 3; c++) {
+
+            if (board[0][c] == player &&
+                    board[1][c] == player &&
+                    board[2][c] == player) {
+
+                winningCells[0]=new int[]{0,c};
+                winningCells[1]=new int[]{1,c};
+                winningCells[2]=new int[]{2,c};
+                return true;}
         }
-    }
 
-    boolean checkWin(char p) {
-        for (int[] combo : winCombos) {
-            if (board[combo[0]] == p &&
-                    board[combo[1]] == p &&
-                    board[combo[2]] == p) {
-                return true;
-            }
+        //Main Diagonal
+        if (board[0][0] == player &&
+                board[1][1] == player &&
+                board[2][2] == player) {
+
+            winningCells[0] = new int[]{0, 0};
+            winningCells[1] = new int[]{1, 1};
+            winningCells[2] = new int[]{2, 2};
+
+            return true;
+        }
+        //Anti Diagonal
+        if (board[0][2] == player &&
+                board[1][1] == player &&
+                board[2][0] == player) {
+            winningCells[0]=new int[]{0,2};
+            winningCells[1]=new int[]{1,1};
+            winningCells[2]=new int[]{2,0};
+
+            return true;
         }
         return false;
     }
 
-    boolean isDraw() {
-        for (char c : board) if (c == ' ') return false;
-        return true;
-    }
+    private void handleWinner(char winner) {
 
-    void highlightWin(char p) {
-        for (int[] combo : winCombos) {
+        if (vsAI) {
 
-            if (board[combo[0]] == p &&
-                    board[combo[1]] == p &&
-                    board[combo[2]] == p) {
+            if (winner == 'X') {
 
-                for (int i : combo) {
+                player1Score++;
 
-                    buttons[i].setBackgroundColor(Color.GREEN);
+                statusText.setText(
+                        "Player Wins!");
 
-                    buttons[i].animate()
-                            .scaleX(1.2f)
-                            .scaleY(1.2f)
-                            .setDuration(200)
-                            .withEndAction(() -> {
-                                buttons[i].setScaleX(1f);
-                                buttons[i].setScaleY(1f);
-                            });
-                }
+            } else {
 
-                drawWinLine(combo); // अगर line भी use कर रहे हो
+                aiScore++;
+
+                statusText.setText(
+                        "AI Wins!");
+            }
+
+        } else {
+
+            if (winner == 'X') {
+
+                player1Score++;
+
+                statusText.setText(
+                        "Player 1 Wins!");
+
+            } else {
+
+                player2Score++;
+
+                statusText.setText(
+                        "Player 2 Wins!");
             }
         }
+
+        updateScoreText();
+        glowWinningCells();
+        disableBoard();
     }
 
-    void disableAll() {
-        for (Button b : buttons) b.setEnabled(false);
-    }
+    private void updateScoreText() {
 
-    void resetGame() {
-        for (int i = 0; i < 9; i++) {
-            board[i] = ' ';
-            buttons[i].setText("");
-            buttons[i].setEnabled(true);
-            buttons[i].setBackgroundColor(Color.LTGRAY);
+        if (vsAI) {
+
+            scoreText.setText(
+
+                    "Player : " +
+                            player1Score +
+
+                            "    AI : " +
+                            aiScore
+            );
+        } else {
+
+            scoreText.setText(
+
+                    "Player 1 : " +
+                            player1Score +
+
+                            "    Player 2 : " +
+                            player2Score
+            );
         }
-        statusText.setText("Your Turn");
-        applyTheme();
+    }
+
+    private void aiMove() {
+
+        String level =
+                levelSpinner
+                        .getSelectedItem()
+                        .toString();
+
+        switch (level) {
+
+            case "Easy":
+                easyAI();
+                break;
+
+            case "Medium":
+                mediumAI();
+                break;
+
+            case "Hard":
+                hardAI();
+                break;
+        }
+    }
+
+    private void easyAI() {
+
+        ArrayList<int[]> moves =
+                new ArrayList<>();
+
+        for (int r = 0; r < 3; r++) {
+
+            for (int c = 0; c < 3; c++) {
+
+                if (board[r][c] == '\0') {
+
+                    moves.add(
+                            new int[]{r, c});
+                }
+            }
+        }
+
+        if (moves.isEmpty())
+            return;
+
+        int[] move =
+                moves.get(
+                        random.nextInt(
+                                moves.size()));
+
+        onCellClicked(
+                move[0],
+                move[1]);
+    }
+
+    private void mediumAI() {
+
+        int[] move =
+                findWinningMove('O');
+
+        if (move == null) {
+
+            move =
+                    findWinningMove('X');
+        }
+
+        if (move != null) {
+
+            onCellClicked(
+                    move[0],
+                    move[1]);
+
+            return;
+        }
+
+        easyAI();
+    }
+
+    private int[] findWinningMove(char player) {
+
+        for (int r = 0; r < 3; r++) {
+
+            for (int c = 0; c < 3; c++) {
+
+                if (board[r][c] == '\0') {
+
+                    board[r][c] = player;
+
+                    boolean win =
+                            checkWinner(player);
+
+                    board[r][c] = '\0';
+
+                    if (win) {
+
+                        return new int[]{r, c};
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private void hardAI() {
+
+        int bestScore =
+                Integer.MIN_VALUE;
+
+        int bestRow = -1;
+        int bestCol = -1;
+
+        for (int r = 0; r < 3; r++) {
+
+            for (int c = 0; c < 3; c++) {
+
+                if (board[r][c] == '\0') {
+
+                    board[r][c] = 'O';
+
+                    int score =
+                            minimax(
+                                    false,
+                                    0);
+
+                    board[r][c] = '\0';
+
+                    if (score > bestScore) {
+
+                        bestScore = score;
+
+                        bestRow = r;
+
+                        bestCol = c;
+                    }
+                }
+            }
+        }
+
+        if (bestRow != -1) {
+
+            onCellClicked(
+                    bestRow,
+                    bestCol);
+        }
+    }
+
+    private int minimax(boolean maximizing, int depth) {
+
+        if (checkWinner('O'))
+            return 10;
+
+        if (checkWinner('X'))
+            return -10;
+
+        if (isBoardFull())
+            return 0;
+
+        if (maximizing) {
+
+            int best =
+                    Integer.MIN_VALUE;
+
+            for (int r = 0; r < 3; r++) {
+
+                for (int c = 0; c < 3; c++) {
+
+                    if (board[r][c] == '\0') {
+
+                        board[r][c] = 'O';
+
+                        int score =
+                                minimax(
+                                        false,
+                                        0);
+
+                        board[r][c] = '\0';
+
+                        best =
+                                Math.max(
+                                        best,
+                                        score);
+                    }
+                }
+            }
+
+            return best;
+        }
+
+        int best =
+                Integer.MAX_VALUE;
+
+        for (int r = 0; r < 3; r++) {
+
+            for (int c = 0; c < 3; c++) {
+
+                if (board[r][c] == '\0') {
+
+                    board[r][c] = 'X';
+
+                    int score =
+                            minimax(
+                                    true,
+                                    0);
+
+                    board[r][c] = '\0';
+
+                    best =
+                            Math.min(
+                                    best,
+                                    score);
+                }
+            }
+        }
+
+        return best;
+    }
+
+    private void updateUndoLimit() {
+
+        String level =
+                levelSpinner
+                        .getSelectedItem()
+                        .toString();
+
+        switch (level) {
+
+            case "Easy":
+
+                maxUndo = 3;
+                break;
+
+            case "Medium":
+
+                maxUndo = 4;
+                break;
+
+            case "Hard":
+
+                maxUndo = 5;
+                break;
+        }
+
+        remainingUndo =
+                maxUndo;
+
+        updateUndoButton();
+    }
+
+    private void undoMove() {
+
+        if (remainingUndo <= 0)
+            return;
+
+        if (moveHistory.isEmpty())
+            return;
+
+        if (vsAI) {
+
+            undoAIMove();
+
+        } else {
+
+            undoPlayerMove();
+        }
+    }
+
+    private void undoPlayerMove() {
+
+        if (moveHistory.isEmpty())
+            return;
+
+        Move move =
+                moveHistory.pop();
+
+        board[move.row][move.col] = '\0';
+
+        cells[move.row][move.col]
+                .setText("");
+
+        currentPlayer =
+                move.player;
+
+        remainingUndo--;
+
+        updateUndoButton();
+
+        statusText.setText(
+
+                currentPlayer == 'X'
+                        ? "Player 1 Turn"
+                        : "Player 2 Turn"
+        );
+    }
+
+        private void undoAIMove () {
+
+            if (moveHistory.size() < 2)
+                return;
+
+            Move aiMove =
+                    moveHistory.pop();
+
+            board[aiMove.row][aiMove.col]
+                    = '\0';
+
+            cells[aiMove.row][aiMove.col]
+                    .setText("");
+
+            Move playerMove =
+                    moveHistory.pop();
+
+            board[playerMove.row]
+                    [playerMove.col]
+                    = '\0';
+
+            cells[playerMove.row]
+                    [playerMove.col]
+                    .setText("");
+
+            currentPlayer = 'X';
+
+            remainingUndo--;
+
+            updateUndoButton();
+
+            statusText.setText(
+                    "Player Turn");
+        }
+
+
+    private void updateUndoButton () {
+
+        undoBtn.setText(
+                "Undo (" +
+                        remainingUndo +
+                        ")");
+    }
+
+    private void glowWinningCells() {
+
+        for(int i=0;i<3;i++) {
+
+            int r = winningCells[i][0];
+            int c = winningCells[i][1];
+
+            cells[r][c].animate()
+                    .scaleX(1.2f)
+                    .scaleY(1.2f)
+                    .setDuration(300)
+                    .withEndAction(() -> {
+
+                        cells[r][c].animate()
+                                .scaleX(1f)
+                                .scaleY(1f)
+                                .setDuration(300);
+
+                    });
+
+            cells[r][c]
+                    .setBackgroundColor(
+                            0xFF4CAF50);
+        }
     }
 }
+
+
