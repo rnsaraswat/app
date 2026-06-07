@@ -116,6 +116,10 @@
                     android:id="@+id/cardFiveInARow"
                     layout="@layout/item_game_card"/>
 
+                <include
+                    android:id="@+id/cardMasterMind"
+                    layout="@layout/item_game_card"/>
+
             </LinearLayout>
 <!--        </LinearLayout>-->
 

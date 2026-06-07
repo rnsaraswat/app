@@ -28,6 +28,7 @@ import com.example.ravindragameshub.common.SoundManager;
 import com.example.ravindragameshub.common.ThemeManager;
 import com.example.ravindragameshub.connect4.Connect4Activity;
 import com.example.ravindragameshub.fiveinarow.FiveinarowGameActivity;
+import com.example.ravindragameshub.mastermind.MastermindActivity;
 import com.example.ravindragameshub.reversi.ReversiActivity;
 import com.example.ravindragameshub.tictactoe.TictactoeActivity;
 import com.google.android.material.card.MaterialCardView;
@@ -95,6 +96,14 @@ public class MainActivity extends AppCompatActivity {
                 "It's not just luck, its strategy",
                 R.drawable.ic_tictactoe,
                 FiveinarowGameActivity.class
+        );
+
+        setupGameCard(
+                R.id.cardMasterMind,
+                "Master Mind",
+                "Thinking without limits",
+                R.drawable.ic_tictactoe,
+                MastermindActivity.class
         );
 
         btnShare = findViewById(R.id.btnShare);

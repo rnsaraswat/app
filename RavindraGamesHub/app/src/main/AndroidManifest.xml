@@ -13,6 +13,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.RavindraGamesHub">
         <activity android:name=".tictactoe.TictactoeActivity"/>
+        <activity android:name=".mastermind.MastermindActivity"/>
         <activity android:name=".fiveinarow.FiveinarowGameActivity"/>
         <activity android:name=".reversi.ReversiActivity"/>
         <activity android:name=".connect4.Connect4Activity"/>

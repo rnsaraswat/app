@@ -1,5 +1,8 @@
 package com.example.mastermind;
 
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -74,10 +77,25 @@ public class HistoryAdapter
 
         for(int color : colors){
 
-            ImageView peg =
-                    new ImageView(
-                            holder.itemView
-                                    .getContext());
+//            ImageView peg =
+//                    new ImageView(
+//                            holder.itemView
+//                                    .getContext());
+
+            TextView peg =
+                    new TextView(
+                            holder.itemView.getContext());
+
+            peg.setGravity(Gravity.CENTER);
+
+            peg.setText(
+                    String.valueOf(color));
+
+            peg.setTextColor(
+                    Color.WHITE);
+
+            peg.setBackgroundResource(
+                    R.drawable.peg_circle);
 
             LinearLayout.LayoutParams params =
                     new LinearLayout.LayoutParams(
@@ -107,6 +125,21 @@ public class HistoryAdapter
                             holder.itemView
                                     .getContext());
 
+//            TextView peg =
+//                    new TextView(
+//                            holder.itemView.getContext());
+//
+//            peg.setGravity(Gravity.CENTER);
+//
+//            peg.setText(
+//                    String.valueOf(color));
+//
+//            peg.setTextColor(
+//                    Color.WHITE);
+//
+//            peg.setBackgroundResource(
+//                    R.drawable.peg_circle);
+
             peg.setBackgroundResource(
                     R.drawable.feedback_black);
 
@@ -132,6 +165,21 @@ public class HistoryAdapter
                     new ImageView(
                             holder.itemView
                                     .getContext());
+
+//            TextView peg =
+//                    new TextView(
+//                            holder.itemView.getContext());
+//
+//            peg.setGravity(Gravity.CENTER);
+//
+//            peg.setText(
+//                    String.valueOf(color));
+//
+//            peg.setTextColor(
+//                    Color.WHITE);
+//
+//            peg.setBackgroundResource(
+//                    R.drawable.peg_circle);
 
             peg.setBackgroundResource(
                     R.drawable.feedback_white);
@@ -209,5 +257,76 @@ public class HistoryAdapter
         }
 
         return R.drawable.peg_empty;
+    }
+
+    private void setHistoryPegColor(
+            TextView peg,
+            int color){
+
+        switch(color){
+
+            case 1:
+                peg.setBackgroundTintList(
+                        ColorStateList.valueOf(
+                                Color.RED));
+                break;
+
+            case 2:
+                peg.setBackgroundTintList(
+                        ColorStateList.valueOf(
+                                Color.BLUE));
+                break;
+
+            case 3:
+                peg.setBackgroundTintList(
+                        ColorStateList.valueOf(
+                                Color.GREEN));
+                break;
+
+            case 4:
+                peg.setBackgroundTintList(
+                        ColorStateList.valueOf(
+                                Color.YELLOW));
+
+                peg.setTextColor(
+                        Color.BLACK);
+                break;
+
+            // बाकी colors भी इसी प्रकार...
+            case 5:
+                peg.setBackgroundTintList(
+                        ColorStateList.valueOf(
+                                Color.MAGENTA));
+                break;
+
+            case 6:
+                peg.setBackgroundTintList(
+                        ColorStateList.valueOf(
+                                0xFFFF9800));
+                break;
+
+            case 7:
+                peg.setBackgroundTintList(
+                        ColorStateList.valueOf(
+                                Color.CYAN));
+                break;
+            case 8:
+                peg.setBackgroundTintList(
+                        ColorStateList.valueOf(
+                                0xFFE91E63));
+                break;
+
+            case 9:
+                peg.setBackgroundTintList(
+                        ColorStateList.valueOf(
+                                0xFF795548));
+                break;
+
+            case 10:
+                peg.setBackgroundTintList(
+                        ColorStateList.valueOf(
+                                Color.GRAY));
+                break;
+        }
     }
 }

@@ -23,6 +23,8 @@ public class SoundManager {
     private static int errorSound;
     private static int flipSound;
     private static int ballTapSound;
+    private static int rightSound;
+    private static int wrongSound;
 
     private static boolean loaded = false;
 
@@ -79,6 +81,14 @@ public class SoundManager {
         ballTapSound =
                 soundPool.load(context,
                         R.raw.balltap, 1);
+
+        rightSound =
+                soundPool.load(context,
+                        R.raw.right_answer, 1);
+
+        wrongSound =
+                soundPool.load(context,
+                        R.raw.wrong_answer, 1);
 
         loaded = true;
     }
@@ -143,6 +153,20 @@ public class SoundManager {
 
         if (soundPool != null)
             soundPool.play(ballTapSound,
+                    1, 1, 1, 0, 1);
+    }
+
+    public static void playRight() {
+
+        if (soundPool != null)
+            soundPool.play(rightSound,
+                    1, 1, 1, 0, 1);
+    }
+
+    public static void playWrong() {
+
+        if (soundPool != null)
+            soundPool.play(wrongSound,
                     1, 1, 1, 0, 1);
     }
 

@@ -1,7 +1,8 @@
-package com.example.mastermind;
+package com.example.ravindragameshub.mastermind;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -27,12 +28,16 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.ravindragameshub.R;
+import com.example.ravindragameshub.common.SoundManager;
+import com.example.ravindragameshub.common.ThemeManager;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity {
+public class MastermindActivity extends AppCompatActivity{
 
     private int[] guessColors;
     private int exactMatches;
@@ -40,9 +45,9 @@ public class MainActivity extends AppCompatActivity {
 
     private RecyclerView historyRecycler;
 
-    private ArrayList<HistoryItem> historyList;
+    private ArrayList<MastermindHistoryItem> historyList;
 
-    private HistoryAdapter historyAdapter;
+    private MastermindHistoryAdapter historyAdapter;
 
     private static final int RED = 1;
     private static final int BLUE = 2;
@@ -57,18 +62,19 @@ public class MainActivity extends AppCompatActivity {
 
     private Spinner spinnerDifficulty;
     private Switch switchDuplicate;
-    private String level;
+    private int level;
     private boolean allowDuplicates;
     private TextView txtAttempts;
     private TextView txtScore;
     private TextView txtDuplicateStatus;
 
     private Button btnCheck;
-//    private Button btnUndo;
+    //    private Button btnUndo;
     private Button btnRules;
     private Button btnRestart;
 
     private GridLayout feedbackGrid;
+    LinearLayout rootLayout;
 
     private int selectedSlot = -1;
 
@@ -85,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout guessRow;
 
     private ArrayList<TextView> slots =
-        new ArrayList<>();
+            new ArrayList<>();
 
     private int codeLength = 4;
 
@@ -102,7 +108,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_mastermind);
+
+        rootLayout = findViewById(R.id.rootLayout);
+
+        // Theme Apply
+        ThemeManager.applyTheme(
+                this,
+                rootLayout
+        );
 
         spinnerDifficulty = findViewById(R.id.spinnerDifficulty);
         txtAttempts = findViewById(R.id.txtAttempts);
@@ -124,11 +138,43 @@ public class MainActivity extends AppCompatActivity {
 
         txtScore.setText("Score: 0");
 
+        Button btnHome =
+                findViewById(R.id.btnHome);
+
+        Button btnShare =
+                findViewById(R.id.btnShare);
+
+        btnHome.setOnClickListener(v -> {
+            SoundManager.playClick();
+            finish();
+        });
+
+        btnShare.setOnClickListener(v -> {
+
+            SoundManager.playClick();
+            Intent shareIntent =
+                    new Intent(Intent.ACTION_SEND);
+
+            shareIntent.setType("text/plain");
+
+            shareIntent.putExtra(
+                    Intent.EXTRA_TEXT,
+                    "Play Ravindra Games Hub!"
+            );
+
+            startActivity(
+                    Intent.createChooser(
+                            shareIntent,
+                            "Share App"
+                    )
+            );
+        });
+
         switchDuplicate.setOnCheckedChangeListener(
                 (buttonView, isChecked) -> {
 
                     allowDuplicates = isChecked;
-
+                    SoundManager.playClick();
                     txtDuplicateStatus.setText(
                             isChecked
                                     ? "Allowed"
@@ -143,9 +189,9 @@ public class MainActivity extends AppCompatActivity {
                 });
 
         String[] levels = {
-                "Easy",
-                "Medium",
-                "Hard"
+                "Easy - 4 slots, 6 colors",
+                "Medium - 5 slots, 8 colors",
+                "Hard - 6 slots, 10 colors"
         };
 
         ArrayAdapter<String> adapter =
@@ -153,9 +199,12 @@ public class MainActivity extends AppCompatActivity {
                         android.R.layout.simple_spinner_dropdown_item,
                         levels);
 
+        adapter.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item);
+
         spinnerDifficulty.setAdapter(adapter);
 
-        startNewGame();
+//        startNewGame();
 
         spinnerDifficulty.setOnItemSelectedListener(
                 new android.widget.AdapterView.OnItemSelectedListener() {
@@ -167,8 +216,31 @@ public class MainActivity extends AppCompatActivity {
                             int position,
                             long id) {
 
-                        level = levels[position];
+                        SoundManager.playClick();
+                        level = position;
                         statusText.setText("Level Changed : " + level);
+                        switch(position){
+                            case 0:
+                                codeLength = 4;
+                                colorCount = 6;
+                                statusText.setText(
+                                        "Easy Level Selected");
+                                break;
+
+                            case 1:
+                                codeLength = 5;
+                                colorCount = 8;
+                                statusText.setText(
+                                        "Medium Level Selected");
+                                break;
+
+                            case 2:
+                                codeLength = 6;
+                                colorCount = 10;
+                                statusText.setText(
+                                        "Hard Level Selected");
+                                break;
+                        }
                         startNewGame();
                     }
 
@@ -184,44 +256,54 @@ public class MainActivity extends AppCompatActivity {
                         : "Duplicates Not Allowed");
 
         findViewById(R.id.redBtn)
-                .setOnClickListener(v ->
-                        addColor(RED));
+                .setOnClickListener(v -> {
+                            SoundManager.playClick();
+                            addColor(RED);});
 
         findViewById(R.id.blueBtn)
-                .setOnClickListener(v ->
-                        addColor(BLUE));
+                .setOnClickListener(v -> {
+                        SoundManager.playClick();
+                        addColor(BLUE);});
 
         findViewById(R.id.greenBtn)
-                .setOnClickListener(v ->
-                        addColor(GREEN));
+                .setOnClickListener(v -> {
+                        SoundManager.playClick();
+                        addColor(GREEN);});
 
         findViewById(R.id.yellowBtn)
-                .setOnClickListener(v ->
-                        addColor(YELLOW));
+                .setOnClickListener(v -> {
+                        SoundManager.playClick();
+                        addColor(YELLOW);});
 
         findViewById(R.id.purpleBtn)
-                .setOnClickListener(v ->
-                        addColor(PURPLE));
+                .setOnClickListener(v -> {
+                        SoundManager.playClick();
+                        addColor(PURPLE);});
 
         findViewById(R.id.orangeBtn)
-                .setOnClickListener(v ->
-                        addColor(ORANGE));
+                .setOnClickListener(v -> {
+                        SoundManager.playClick();
+                        addColor(ORANGE);});
 
         findViewById(R.id.cyanBtn)
-                .setOnClickListener(v ->
-                        addColor(CYAN));
+                .setOnClickListener(v -> {
+                        SoundManager.playClick();
+                        addColor(CYAN);});
 
         findViewById(R.id.pinkBtn)
-                .setOnClickListener(v ->
-                        addColor(PINK));
+                .setOnClickListener(v -> {
+                        SoundManager.playClick();
+                        addColor(PINK);});
 
         findViewById(R.id.brownBtn)
-                .setOnClickListener(v ->
-                        addColor(BROWN));
+                .setOnClickListener(v -> {
+                        SoundManager.playClick();
+                        addColor(BROWN);});
 
         findViewById(R.id.grayBtn)
-                .setOnClickListener(v ->
-                        addColor(GRAY));
+                .setOnClickListener(v -> {
+                        SoundManager.playClick();
+                        addColor(GRAY);});
 
         historyRecycler =
                 findViewById(R.id.historyRecycler);
@@ -229,7 +311,7 @@ public class MainActivity extends AppCompatActivity {
         historyList = new ArrayList<>();
 
         historyAdapter =
-                new HistoryAdapter(historyList);
+                new MastermindHistoryAdapter(historyList);
 
         historyRecycler.setLayoutManager(
                 new LinearLayoutManager(this));
@@ -238,14 +320,6 @@ public class MainActivity extends AppCompatActivity {
                 historyAdapter);
 
         startNewGame();
-//        ImageView peg = new ImageView(this);
-//
-//        if(exactMatch){
-//            peg.setBackgroundColor(Color.BLACK);
-//        }
-//        else{
-//            peg.setBackgroundColor(Color.WHITE);
-//        }
 
         if(savedInstanceState != null){
 
@@ -267,55 +341,35 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-//        btnUndo.setOnClickListener(v -> {
-//
-//            if(selectedSlot  > 0){
-//
-////                selectedSlot --;
-//
-//                slots.get(selectedSlot )
-//                        .setBackgroundResource(
-//                                R.drawable.peg_empty);
-//
-//                playerGuess[selectedSlot ] = 0;
-//            }
-//        });
-
-//        redBtn.setOnClickListener(v -> addColor(1));
-//        blueBtn.setOnClickListener(v -> addColor(2));
-//        greenBtn.setOnClickListener(v -> addColor(3));
-//        yellowBtn.setOnClickListener(v -> addColor(4));
-//        purpleBtn.setOnClickListener(v -> addColor(5));
-//        orangeBtn.setOnClickListener(v -> addColor(6));
         cyanBtn.setOnClickListener(v -> {
-                Toast.makeText(
-                                this,
-                                "Red Clicked",
-                                Toast.LENGTH_SHORT)
-                        .show();
-                addColor(7);});
-        pinkBtn.setOnClickListener(v -> addColor(8));
-        brownBtn.setOnClickListener(v -> addColor(9));
-        grayBtn.setOnClickListener(v -> addColor(10));
+            SoundManager.playClick();
+            addColor(7);});
+        pinkBtn.setOnClickListener(v -> {
+                SoundManager.playClick();
+                addColor(8);});
+        brownBtn.setOnClickListener(v -> {
+                SoundManager.playClick();
+                addColor(9);});
+        grayBtn.setOnClickListener(v -> {
+                SoundManager.playClick();
+                addColor(10);});
 
         Button btnRestart =
                 findViewById(R.id.btnRestart);
 
-        btnCheck.setOnClickListener(v ->
-                checkGuess());
+        btnCheck.setOnClickListener(v -> {
+                SoundManager.playClick();
+                checkGuess();});
 
-//        btnUndo.setOnClickListener(v ->
-//                undoMove());
-
-        btnRestart.setOnClickListener(v ->
-                startNewGame());
-
-//        MaterialButton btnRules =
-//                findViewById(
-//                        R.id.btnRules);
+        btnRestart.setOnClickListener(v -> {
+            SoundManager.playClick();
+                startNewGame();});
 
         btnRules.setOnClickListener(
-                v -> showRulesDialog());
+                v -> {
+                    SoundManager.playClick();
+                    showRulesDialog();
+                });
 
         showFeedback(exactMatches, partialMatches);
     }
@@ -340,10 +394,10 @@ public class MainActivity extends AppCompatActivity {
             peg.setTextColor(Color.WHITE);
 
             peg.setBackgroundResource(
-                    R.drawable.peg_circle);
+                    R.drawable.mm_peg_circle);
 
             peg.setBackgroundResource(
-                    R.drawable.feedback_black);
+                    R.drawable.mm_feedback_black);
 
             GridLayout.LayoutParams params =
                     new GridLayout.LayoutParams();
@@ -370,10 +424,10 @@ public class MainActivity extends AppCompatActivity {
             peg.setTextColor(Color.WHITE);
 
             peg.setBackgroundResource(
-                    R.drawable.peg_circle);
+                    R.drawable.mm_peg_circle);
 
             peg.setBackgroundResource(
-                    R.drawable.feedback_white);
+                    R.drawable.mm_feedback_white);
 
             GridLayout.LayoutParams params =
                     new GridLayout.LayoutParams();
@@ -399,7 +453,7 @@ public class MainActivity extends AppCompatActivity {
         peg.setTextColor(Color.WHITE);
 
         peg.setBackgroundResource(
-                R.drawable.peg_circle);
+                R.drawable.mm_peg_circle);
 
         slots.clear();
 
@@ -417,7 +471,7 @@ public class MainActivity extends AppCompatActivity {
             peg.setTextColor(Color.WHITE);
 
             peg.setBackgroundResource(
-                    R.drawable.peg_circle);
+                    R.drawable.mm_peg_circle);
 
 //            LinearLayout.LayoutParams params =
 //                    new LinearLayout.LayoutParams(
@@ -439,20 +493,14 @@ public class MainActivity extends AppCompatActivity {
             peg.setLayoutParams(params);
 
             peg.setBackgroundResource(
-                    R.drawable.peg_empty);
+                    R.drawable.mm_peg_empty);
 
             final int index = i;
 
             peg.setClickable(true);
 
             peg.setOnClickListener(v -> {
-
-                Toast.makeText(
-                                MainActivity.this,
-                                "Slot " + index,
-                                Toast.LENGTH_SHORT)
-                        .show();
-
+                SoundManager.playClick();
                 selectSlot(index);
                 updateSlotViews();
             });
@@ -460,11 +508,14 @@ public class MainActivity extends AppCompatActivity {
             peg.setOnLongClickListener(v -> {
 
                 playerGuess[index] = 0;
+                SoundManager.playError();
+                statusText.setText(
+                        "Guess all Slots : slot " + index);
 //
 //                ((ImageView) v).setBackgroundResource(
 //                        R.drawable.peg_empty);
                 ((TextView) v).setBackgroundResource(
-                        R.drawable.peg_empty);
+                        R.drawable.mm_peg_empty);
 
                 return true;
             });
@@ -481,28 +532,6 @@ public class MainActivity extends AppCompatActivity {
                 new int[codeLength];
     }
 
-//    private void selectSlot(int index){
-//
-//        Log.d(
-//                "MM",
-//                "Selected Slot = "
-//                        + index);
-//
-//        selectedSlot = index;
-//
-//        for(int i=0;i<slots.size();i++){
-//
-//            slots.get(i)
-//                    .setBackgroundResource(
-//                            R.drawable.peg_empty);
-//        }
-//
-//        updateSlotViews();
-//
-//        slots.get(index)
-//                .setBackgroundResource(
-//                        R.drawable.selected_slot_border);
-//    }
 
     private void selectSlot(int index){
 
@@ -519,14 +548,10 @@ public class MainActivity extends AppCompatActivity {
 
         statusText.setText(
                 "New Game Started");
-        String level =
-                spinnerDifficulty
-                        .getSelectedItem()
-                        .toString();
 
         switch(level){
 
-            case "Easy":
+            case 0:
 
                 codeLength = 4;
                 colorCount = 6;
@@ -534,7 +559,7 @@ public class MainActivity extends AppCompatActivity {
 
                 break;
 
-            case "Medium":
+            case 1:
 
                 codeLength = 5;
                 colorCount = 8;
@@ -570,92 +595,65 @@ public class MainActivity extends AppCompatActivity {
         secretCodeRow.removeAllViews();
         feedbackGrid.removeAllViews();
         //Secret Code Preview Dialog, for Debug mode secretCodeToString()
-        statusText.setText(
-                "Make Your Guess " + secretCodeToString());
+//        statusText.setText("Make Your Guess " + secretCodeToString());
+        statusText.setText("Make Your Guess ");
     }
 
     private void generateSecretCode() {
 
-        Random random =
-                new Random();
+        Random random = new Random();
 
 //        if(switchDuplicate.isChecked()){
         if(allowDuplicates){
-
             for(int i=0;i<codeLength;i++){
-
-                secretCode[i] =
-                        random.nextInt(
-                                colorCount)+1;
+                secretCode[i] = random.nextInt(colorCount)+1;
             }
         }
         else{
+            ArrayList<Integer> colors = new ArrayList<>();
 
-            ArrayList<Integer> colors =
-                    new ArrayList<>();
-
-            for(int i=1;
-                i<=colorCount;
-                i++){
-
+            for(int i=1; i<=colorCount; i++){
                 colors.add(i);
             }
 
             Collections.shuffle(colors);
 
-            for(int i=0;
-                i<codeLength;
-                i++){
-
-                secretCode[i] =
-                        colors.get(i);
+            for(int i=0; i<codeLength; i++){
+                secretCode[i] = colors.get(i);
             }
         }
     }
 
-    //    Secret Code Reveal
+    // Secret Code display numbers in text
     private String secretCodeToString(){
 
-        StringBuilder sb =
-                new StringBuilder();
+        StringBuilder sb = new StringBuilder();
 
         for(int value : secretCode){
-
             sb.append(value);
         }
-
         return sb.toString();
     }
 
+    //add colour to slot
     private void addColor(int color){
 
-        Log.d(
-                "MM",
-                "Current Selected = "
-                        + selectedSlot);
-
         if(selectedSlot == -1) {
-            Toast.makeText(
-                            this,
-                            "Select Slot First",
-                            Toast.LENGTH_SHORT)
-                    .show();
+            SoundManager.playError();
+            statusText.setText("Select slot first ");
             return;
         }
 
-        statusText.setText(
-                "Slot "
-                        + (selectedSlot + 1)
-                        + " = Color "
-                        + color);
+        statusText.setText("Slot " + (selectedSlot + 1)
+                        + " = Color " + color);
 
         playerGuess[selectedSlot] = color;
 
         updateSlotViews();
     }
 
+    //update slt view
     private void updateSlotViews(){
-
 
         for(int i=0;i<codeLength;i++){
 
@@ -663,15 +661,12 @@ public class MainActivity extends AppCompatActivity {
 
             if(playerGuess[i] == 0){
 
-
                 peg.setText("");
 
                 peg.setBackgroundResource(
-                        R.drawable.peg_circle);
+                        R.drawable.mm_peg_circle);
                 peg.getBackground()
                         .setTint(Color.LTGRAY);
-//                peg.setBackgroundColor(
-//                        Color.LTGRAY);
 
                 slots.get(i).setText("");
 
@@ -680,13 +675,6 @@ public class MainActivity extends AppCompatActivity {
                                 ColorStateList.valueOf(
                                         Color.LTGRAY));
             }
-//            else{
-//
-//                setPegColor(
-//                        slots.get(i),
-//                        playerGuess[i]);
-//            }
-
             else{
 
                 peg.setText(
@@ -697,28 +685,28 @@ public class MainActivity extends AppCompatActivity {
 
                     case 1:
                         peg.setBackgroundResource(
-                                R.drawable.peg_circle);
+                                R.drawable.mm_peg_circle);
                         peg.getBackground()
                                 .setTint(Color.RED);
                         break;
 
                     case 2:
                         peg.setBackgroundResource(
-                                R.drawable.peg_circle);
+                                R.drawable.mm_peg_circle);
                         peg.getBackground()
                                 .setTint(Color.BLUE);
                         break;
 
                     case 3:
                         peg.setBackgroundResource(
-                                R.drawable.peg_circle);
+                                R.drawable.mm_peg_circle);
                         peg.getBackground()
                                 .setTint(Color.GREEN);
                         break;
 
                     case 4:
                         peg.setBackgroundResource(
-                            R.drawable.peg_circle);
+                                R.drawable.mm_peg_circle);
                         peg.getBackground()
                                 .setTint(Color.YELLOW);
 
@@ -728,14 +716,14 @@ public class MainActivity extends AppCompatActivity {
 
                     case 5:
                         peg.setBackgroundResource(
-                                R.drawable.peg_circle);
+                                R.drawable.mm_peg_circle);
                         peg.getBackground()
                                 .setTint(Color.MAGENTA);
                         break;
 
                     case 6:
                         peg.setBackgroundResource(
-                                R.drawable.peg_circle);
+                                R.drawable.mm_peg_circle);
                         peg.getBackground()
                                 .setTint(0xFFFF9800);
                         break;
@@ -743,7 +731,7 @@ public class MainActivity extends AppCompatActivity {
                     case 7:
 
                         peg.setBackgroundResource(
-                                R.drawable.peg_circle);
+                                R.drawable.mm_peg_circle);
 
                         peg.getBackground()
                                 .setTint(Color.CYAN);
@@ -753,7 +741,7 @@ public class MainActivity extends AppCompatActivity {
                     case 8:
 
                         peg.setBackgroundResource(
-                                R.drawable.peg_circle);
+                                R.drawable.mm_peg_circle);
 
                         peg.getBackground()
                                 .setTint(0xFFE91E63);
@@ -763,7 +751,7 @@ public class MainActivity extends AppCompatActivity {
                     case 9:
 
                         peg.setBackgroundResource(
-                                R.drawable.peg_circle);
+                                R.drawable.mm_peg_circle);
 
                         peg.getBackground()
                                 .setTint(0xFF795548);
@@ -773,7 +761,7 @@ public class MainActivity extends AppCompatActivity {
                     case 10:
 
                         peg.setBackgroundResource(
-                                R.drawable.peg_circle);
+                                R.drawable.mm_peg_circle);
 
                         peg.getBackground()
                                 .setTint(Color.GRAY);
@@ -785,44 +773,25 @@ public class MainActivity extends AppCompatActivity {
 
         //remove select cell border
         for(int i=0;i<slots.size();i++){
-
             slots.get(i)
                     .setForeground(null);
         }
 
 
         if(selectedSlot >= 0){
-
             slots.get(selectedSlot)
                     .setForeground(
                             getDrawable(
-                                    R.drawable.selected_slot_border));
+                                    R.drawable.mm_selected_slot_border));
         }
-
-//        for(int i=0;i<slots.size();i++){
-//
-//            if(i == selectedSlot){
-//
-//                slots.get(i).setScaleX(1.2f);
-//                slots.get(i).setScaleY(1.2f);
-//
-//            }else{
-//
-//                slots.get(i).setScaleX(1f);
-//                slots.get(i).setScaleY(1f);
-//            }
-//        }
     }
 
     private void setPegColor(
             TextView peg,
             int colorNumber){
 
-//        peg.setText(
-//                String.valueOf(colorNumber));
-
         peg.setBackgroundResource(
-                R.drawable.peg_circle);
+                R.drawable.mm_peg_circle);
 
         peg.setTextColor(
                 Color.WHITE);
@@ -894,40 +863,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void undoMove(){
-
-        if(selectedSlot <= 0)
-            return;
-
-//        currentIndex--;
-
-        playerGuess[selectedSlot] = 0;
-
-        slots.get(selectedSlot )
-                .setBackgroundResource(
-                        R.drawable.peg_empty);
-
-        //Undo Animation
-        slots.get(selectedSlot)
-                .animate()
-                .alpha(0f)
-                .setDuration(150)
-                .withEndAction(() -> {
-
-                    slots.get(selectedSlot)
-                            .setBackgroundResource(
-                                    R.drawable.peg_empty);
-
-                    slots.get(selectedSlot)
-                            .setAlpha(1f);
-                });
-    }
-
+    //check guess
     private void checkGuess(){
 
+        //check for empty slot
         for(int color : playerGuess){
 
             if(color == 0){
+                SoundManager.playError();
+                statusText.setText(
+                        "Guess all Slots");
                 return;
             }
         }
@@ -935,21 +880,15 @@ public class MainActivity extends AppCompatActivity {
         exactMatches = 0;
         partialMatches = 0;
 
-        boolean[] secretUsed =
-                new boolean[codeLength];
+        boolean[] secretUsed = new boolean[codeLength];
 
-        boolean[] guessUsed =
-                new boolean[codeLength];
+        boolean[] guessUsed = new boolean[codeLength];
 
         for(int i=0;i<codeLength;i++){
-
-            if(playerGuess[i]
-                    == secretCode[i]){
-
+            if(playerGuess[i] == secretCode[i]){
                 exactMatches++;
-
+                SoundManager.playRight();
                 secretUsed[i] = true;
-
                 guessUsed[i] = true;
             }
         }
@@ -964,11 +903,10 @@ public class MainActivity extends AppCompatActivity {
                 if(secretUsed[j])
                     continue;
 
-                if(playerGuess[i]
-                        == secretCode[j]){
+                if(playerGuess[i] == secretCode[j]){
 
                     partialMatches++;
-
+                    SoundManager.playWrong();
                     secretUsed[j] = true;
 
                     break;
@@ -976,81 +914,52 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        showFeedback(
-                exactMatches,
-                partialMatches);
-
+        showFeedback(exactMatches, partialMatches);
 
         addHistory(
                 playerGuess.clone(),
                 exactMatches,
                 partialMatches);
 
-//        attemptsLeft--;
-//
-//        txtAttempts.setText(
-//                "Attempts: "
-//                        + attemptsLeft);
-
         attemptsUsed++;
 
-        txtAttempts.setText(
-                "Attempts: "
-                        + (maxAttempts - attemptsUsed)
-                        + "/"
-                        + maxAttempts);
+        txtAttempts.setText("Attempts: " + (maxAttempts - attemptsUsed)
+                + "/" + maxAttempts);
 
-        statusText.setText(
-                "Black: "
-                        + exactMatches
-                        + "  White: "
-                        + partialMatches);
-
-
-        Log.d(
-                "MM",
-                Arrays.toString(secretCode));
+        statusText.setText("Black: " + exactMatches
+                        + "  White: " + partialMatches);
 
         if(exactMatches == codeLength){
 
-            statusText.setText(
-                    "🎉 WIN! Secret Code:");
-
+            statusText.setText("🎉 You WIN! 🎉 Secret Code:");
+            SoundManager.playWin();
             secretCodeRow.removeAllViews();
             showSecretCode();
 
             //level bonus
             switch(codeLength){
-
                 case 4:
                     score += 100;
                     break;
-
                 case 5:
                     score += 200;
                     break;
-
                 case 6:
                     score += 300;
                     break;
             }
             //Fast win bonus:
             score += (maxAttempts - attemptsUsed) * 10;
-            txtScore.setText(
-                    String.valueOf(score));
-            showWinDialog();
+            txtScore.setText("Score: " + score);
             return;
         }
 
         if(attemptsUsed >= maxAttempts){
-            statusText.setText(
-                    "❌ LOSE! Secret Code:");
-
-            txtAttempts.setText(
-                    "Attempts: "
+            statusText.setText("❌ You LOSE! Secret Code:");
+            SoundManager.playLose();
+            txtAttempts.setText("Attempts: "
                             + (maxAttempts - attemptsUsed)
-                            + "/"
-                            + maxAttempts);
+                            + "/" + maxAttempts);
             secretCodeRow.removeAllViews();
             showSecretCode();
             return;
@@ -1061,26 +970,26 @@ public class MainActivity extends AppCompatActivity {
         clearGuess();
     }
 
+    //clear guess
     private void clearGuess(){
 
         for(int i=0;i<codeLength;i++){
-
             playerGuess[i] = 0;
         }
 
         selectedSlot = -1;
 
         updateSlotViews();
-
     }
 
+    //add history
     private void addHistory(
             int[] guessColors,
             int exactMatches,
             int partialMatches){
 
         historyList.add(
-                new HistoryItem(
+                new MastermindHistoryItem(
                         guessColors,
                         exactMatches,
                         partialMatches));
@@ -1089,58 +998,19 @@ public class MainActivity extends AppCompatActivity {
                 historyList.size()-1);
     }
 
+    //remove history
     private void clearHistory() {
 
         if(historyList != null){
-
             historyList.clear();
         }
 
         if(historyAdapter != null){
-
             historyAdapter.notifyDataSetChanged();
         }
     }
 
-    private int getPegDrawable(
-            int colorId){
-
-        switch(colorId){
-
-            case 1:
-                return R.drawable.peg_red;
-
-            case 2:
-                return R.drawable.peg_blue;
-
-            case 3:
-                return R.drawable.peg_green;
-
-            case 4:
-                return R.drawable.peg_yellow;
-
-            case 5:
-                return R.drawable.peg_purple;
-
-            case 6:
-                return R.drawable.peg_orange;
-
-            case 7:
-                return R.drawable.peg_cyan;
-
-            case 8:
-                return R.drawable.peg_pink;
-
-            case 9:
-                return R.drawable.peg_brown;
-
-            case 10:
-                return R.drawable.peg_gray;
-        }
-
-        return R.drawable.peg_empty;
-    }
-
+    //update coloue buttons as per level
     private void updateColorButtons() {
 
         cyanBtn.setVisibility(View.GONE);
@@ -1149,80 +1019,45 @@ public class MainActivity extends AppCompatActivity {
         grayBtn.setVisibility(View.GONE);
 
         if(colorCount >= 8){
-
             cyanBtn.setVisibility(View.VISIBLE);
             pinkBtn.setVisibility(View.VISIBLE);
         }
 
         if(colorCount >= 10){
-
             brownBtn.setVisibility(View.VISIBLE);
             grayBtn.setVisibility(View.VISIBLE);
         }
     }
 
-    private String guessToString(){
+    //Show Secret Code Method in status
+    private void showSecretCode(){
 
-        StringBuilder sb =
-                new StringBuilder();
+        for(int color : secretCode){
 
-        for(int value : playerGuess){
+            TextView peg = new TextView(this);
 
-            sb.append(value);
+            LinearLayout.LayoutParams params =
+                    new LinearLayout.LayoutParams( getResources()
+                                    .getDimensionPixelSize(
+                                            R.dimen.peg_size), getResources()
+                                    .getDimensionPixelSize(
+                                            R.dimen.peg_size));
+
+            params.setMargins(6,6,6,6);
+
+            peg.setLayoutParams(params);
+
+            peg.setGravity(Gravity.CENTER);
+
+            peg.setText(String.valueOf(color));
+
+            peg.setTextSize(18);
+
+            setPegColor(peg, color);
+
+            secretCodeRow.addView(peg);
         }
-
-        return sb.toString();
     }
-
-    private void showWinDialog(){
-        statusText.setText(
-                "🎉 YOU WIN! 🎉");
-    }
-
-        //Show Secret Code Method in status
-        private void showSecretCode(){
-
-            //Secret Code Preview Dialog, for Debug mode
-//            new AlertDialog.Builder(this)
-//                    .setTitle("Secret")
-//                    .setMessage(secretCodeToString())
-//                    .show();
-//            secretCodeRow.removeAllViews();
-
-            for(int color : secretCode){
-
-                TextView peg =
-                        new TextView(this);
-
-                LinearLayout.LayoutParams params =
-                        new LinearLayout.LayoutParams(
-                                getResources()
-                                        .getDimensionPixelSize(
-                                                R.dimen.peg_size),
-
-                                getResources()
-                                        .getDimensionPixelSize(
-                                                R.dimen.peg_size));
-
-                params.setMargins(
-                        6,6,6,6);
-
-                peg.setLayoutParams(params);
-
-                peg.setGravity(Gravity.CENTER);
-
-                peg.setText(
-                        String.valueOf(color));
-
-                peg.setTextSize(18);
-
-                setPegColor(
-                        peg,
-                        color);
-
-                secretCodeRow.addView(peg);
-            }
-        }
 
     @Override
     protected void onSaveInstanceState(
@@ -1240,40 +1075,34 @@ public class MainActivity extends AppCompatActivity {
                 attemptsLeft);
     }
 
+    //show rules dialog box
     private void showRulesDialog() {
 
         Dialog dialog = new Dialog(this);
 
-        dialog.setContentView(
-                R.layout.rules_dialog);
+        dialog.setContentView(R.layout.mm_rules_dialog);
 
-        ImageButton closeBtn =
-                dialog.findViewById(
-                        R.id.btnCloseRules);
+        ImageButton closeBtn = dialog.findViewById(R.id.btnCloseRules);
 
-        TextView txtRules =
-                dialog.findViewById(
-                        R.id.txtRules);
+        TextView txtRules = dialog.findViewById(R.id.txtRules);
 
-        txtRules.setText(
-                getRulesText());
+        txtRules.setText(getRulesText());
 
-        closeBtn.setOnClickListener(
-                v -> dialog.dismiss());
+        closeBtn.setOnClickListener(v -> {
+            dialog.dismiss();
+            SoundManager.playClick();
+        });
 
         Window window = dialog.getWindow();
 
         if(window != null){
 
             DisplayMetrics dm =
-                    getResources()
-                            .getDisplayMetrics();
+                    getResources().getDisplayMetrics();
 
-            int width =
-                    (int)(dm.widthPixels * 0.95);
+            int width = (int)(dm.widthPixels * 0.95);
 
-            int height =
-                    (int)(dm.heightPixels * 0.95);
+            int height = (int)(dm.heightPixels * 0.95);
 
             window.setLayout(
                     width,
@@ -1283,45 +1112,49 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    //rules
     private String getRulesText(){
 
         return
-                "MASTERMIND RULES\n\n" +
+                "Mastermind is a classic code-breaking game for two players and Computer.\n\n" +
+                "Computer acts as the Code Maker and the Player as the Code Breaker.\n\n" +
+                "The objective is for the Player(Code Breaker) to guess the Code Maker’s hidden sequence of coloured pegs in limited number of attempts.\n\n" +
+                "Guess slots: for choose guess colours for player.\n\n" +
+                "Secret Code Slots: for display computer generated secret colours codes if player win or lose.\n\n" +
+                "Colours slots: to choose colours in slots to find secret code.\n\n" +
+                "Check Button: to check player guess colours in all slots.\n\n" +
 
-                        "Mastermind is a classic code-breaking game for two players/Computer.\n\n" +
-                        "Computer acts as the Code Maker and the Player as the Code Breaker.\n\n" +
-                        "The objective is for the Player(Code Breaker) to guess the Code Maker’s hidden sequence of colored pegs in limited number of attempts.\n\n" +
-                        "Guess slots: for choose guess colors for player.\n\n" +
-                        "Secret Code Slots: for display computer generated secret colours codes if player win or loose.\n\n" +
-                        "Colors slots: to choose secret colors in slots.\n\n" +
-                        "Check Button: to check player guess colors in all slots.\n\n" +
+                "Rules button: to see game rules (current window).\n\n" +
+                "Restart button: to restart game - computer choose new secret code\n\n" +
+                "Level: choose difficulty level\n\n" +
+                "Easy Level:\n" +
+                "- 4 slots\n" +
+                "- 6 colours\n\n" +
 
-                        "Rules button: to see game rules (current window).\n\n" +
-                        "Restart button: to restart gamin - computer choose new secret code\n\n" +
-                        "Level: choose difficulty level\n\n" +
-                        "Easy Level:\n" +
-                        "- 4 slots\n" +
-                        "- 6 colors\n\n" +
+                "Medium Level:\n" +
+                "- 5 slots\n" +
+                "- 8 colours\n\n" +
 
-                        "Medium Level:\n" +
-                        "- 5 slots\n" +
-                        "- 8 colors\n\n" +
+                "Hard Level:\n" +
+                "- 6 slots\n" +
+                "- 10 colours\n\n" +
 
-                        "Hard Level:\n" +
-                        "- 6 slots\n" +
-                        "- 10 colors\n\n" +
-                        "1. The computer generates a secret code and keeps hidden. (same Colors may or may not be appear multiple times).\n\n" +
+                "Duplicate Allowed: If duplicates are allowed, the same colour may appear multiple times.\n\n" +
 
-                        "2. Select a slot and choose a color.\n\n" +
+                "Win by finding the entire secret code with correct sequence. (all feedback peg are black)\n\n" +
 
-                        "3. Fill all slots and press CHECK.\n\n" +
+                "Lose when secret code in correct sequence not find in given number of attempts\n\n" +
 
-                        "4. Black feedback peg = correct color in correct position.\n\n" +
+                "how to play\n\n" +
 
-                        "5. White feedback peg = correct color but wrong position.\n\n" +
+                "1. The computer generates a secret code and keeps hidden. (same Colours may or may not be appear multiple times).\n\n" +
 
-                        "Duplicate Allowed: If duplicates are allowed, the same color may appear multiple times.\n\n" +
+                "2. Select a slot and choose a colour for this slot.\n\n" +
 
-                        "Win by finding the entire secret code with correct sequence.";
+                "3. Fill all slots and press CHECK.\n\n" +
+
+                "4. Black feedback peg = correct colour in correct position.\n\n" +
+
+                "5. White feedback peg = correct colour but wrong position.\n";
     }
 }
