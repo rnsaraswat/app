@@ -30,6 +30,7 @@ import com.example.ravindragameshub.connect4.Connect4Activity;
 import com.example.ravindragameshub.fiveinarow.FiveinarowGameActivity;
 import com.example.ravindragameshub.mastermind.MastermindActivity;
 import com.example.ravindragameshub.reversi.ReversiActivity;
+import com.example.ravindragameshub.sudoku.SudokuActivity;
 import com.example.ravindragameshub.tictactoe.TictactoeActivity;
 import com.google.android.material.card.MaterialCardView;
 
@@ -104,6 +105,14 @@ public class MainActivity extends AppCompatActivity {
                 "Thinking without limits",
                 R.drawable.ic_tictactoe,
                 MastermindActivity.class
+        );
+
+        setupGameCard(
+                R.id.cardSudoku,
+                "Sudoku",
+                "Solve logic number puzzle",
+                R.drawable.ic_tictactoe,
+                SudokuActivity.class
         );
 
         btnShare = findViewById(R.id.btnShare);

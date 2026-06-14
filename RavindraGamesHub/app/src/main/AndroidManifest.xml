@@ -17,6 +17,7 @@
         <activity android:name=".fiveinarow.FiveinarowGameActivity"/>
         <activity android:name=".reversi.ReversiActivity"/>
         <activity android:name=".connect4.Connect4Activity"/>
+        <activity android:name=".sudoku.SudokuActivity"/>
 
         <activity
             android:name=".MainActivity"

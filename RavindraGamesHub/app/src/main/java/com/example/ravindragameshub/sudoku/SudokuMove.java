@@ -1,0 +1,21 @@
+package com.example.ravindragameshub.sudoku;
+
+public class SudokuMove {
+
+    public int row;
+    public int col;
+
+    public String oldValue;
+    public String newValue;
+
+    public SudokuMove(int row,
+                int col,
+                String oldValue,
+                String newValue) {
+
+        this.row = row;
+        this.col = col;
+        this.oldValue = oldValue;
+        this.newValue = newValue;
+    }
+}

@@ -16,4 +16,11 @@
     <color name="BlueStart">#0D47A1</color>
     <color name="BlueEnd">#42A5F5</color>
     <color name="BlueBtn">#1976D2</color>
+    <color name="sudokubackgroundColor">#F5F5F5</color>
+    <color name="sudokutextColor">#212121</color>
+    <color name="sudokuboardColor">#FFFFFF</color>
+    <color name="sudokucellBorder">#444444</color>
+    <color name="sudokuselectedCell">#90CAF9</color>
+    <color name="sudokufixedNumber">#000000</color>
+    <color name="sudokuuserNumber">#1976D2</color>
 </resources>
