@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:orientation="vertical"
+android:padding="8dp">
+
+<TextView
+    android:id="@+id/tvTitle"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="Water Sort Puzzle"
+    android:textSize="28sp"
+    android:textStyle="bold"
+    android:gravity="center"/>
+
+<TextView
+    android:id="@+id/tvMoves"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="Moves : 0"
+    android:textSize="18sp"
+    android:gravity="center"
+    android:layout_marginTop="8dp"/>
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <Button
+        android:id="@+id/btnUndo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Undo"/>
+
+    <Button
+        android:id="@+id/btnHint"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Hint"/>
+
+    <Button
+        android:id="@+id/btnRestart"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Restart"/>
+
+    <Button
+        android:id="@+id/btnTheme"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Theme"/>
+
+</LinearLayout>
+
+<GridLayout
+    android:id="@+id/grid"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:columnCount="5"/>
+
+</LinearLayout>
